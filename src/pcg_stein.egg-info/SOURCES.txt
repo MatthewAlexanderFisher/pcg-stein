@@ -1,0 +1,15 @@
+LICENSE
+README.md
+pyproject.toml
+setup.cfg
+src/pcg_stein/__init__.py
+src/pcg_stein/distribution.py
+src/pcg_stein/kernel.py
+src/pcg_stein/pcg.py
+src/pcg_stein/precon.py
+src/pcg_stein/util.py
+src/pcg_stein.egg-info/PKG-INFO
+src/pcg_stein.egg-info/SOURCES.txt
+src/pcg_stein.egg-info/dependency_links.txt
+src/pcg_stein.egg-info/requires.txt
+src/pcg_stein.egg-info/top_level.txt

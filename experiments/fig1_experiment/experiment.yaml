@@ -1,0 +1,25 @@
+# PCG sweep configuration
+replicates: 50
+mcmc_samples: 1000
+
+# kernel hyperparameters
+lengthscales: [1e-2, 1e-1, 1.0, 1e1, 1e2]
+
+# preconditioner parameters
+block_sizes:  [1, 2, 3, 4, 5]
+nuggets:      [1e-4, 1e-2, 1.0, 1e2, 1e4]
+
+# low-rank target
+m_rank: 50
+
+# kernel (must match .name in KERNEL_REGISTRY)
+kernel: "Matern52"
+
+# preconditioners to test (must match .name in PRECON_REGISTRY)
+precons:
+  - "Nystrom"
+  - "NystromRandom"
+  - "NystromDiagonal"
+  - "RandomisedSVD"
+  - "FITC"
+  - "BlockJacobi"

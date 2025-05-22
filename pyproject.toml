@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pcg-stein"
+version = "0.1.0"
+description = "Preconditioned Conjugate Gradient methods for Stein kernel applications"
+authors = [
+    { name="Matthew Fisher", email="matthew.fisher@newcastle.ac.uk" }
+]
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.10,<3.13"
+dependencies = [
+    "jax==0.6.0",
+    "pyyaml==6.0.2"
+]
+
+[project.optional-dependencies]
+dev = [
+    "black==25.1.0", 
+]
+docs = [
+    "sphinx", 
+    "sphinx-autodoc-typehints", 
+    "sphinx-rtd-theme",
+    "furo"
+]
+
+[tool.setuptools]
+package-dir = { "" = "src" }
+
+[tool.setuptools.packages.find]
+where = ["src"]

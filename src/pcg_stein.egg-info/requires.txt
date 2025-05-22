@@ -1,0 +1,9 @@
+jax==0.6.0
+
+[dev]
+black==25.1.0
+
+[docs]
+sphinx
+sphinx-autodoc-typehints
+sphinx-rtd-theme
