@@ -48,17 +48,16 @@ We can compute its gradient and divergence in closed form:
 ##### The mixed divergence $\nabla_x\cdot\nabla_y\,k(x,y)$:
    We seek
    $$
-     \nabla_x \cdot \nabla_y k(x,y) =  \nabla_x\cdot\Bigl[-\varphi'(r)\,\frac{u}{r}\Bigr] = -\nabla_x\!\cdot\Bigl[\underbrace{\tfrac{\varphi'(r)}{r}}_{g(r)}u\Bigr].
+     \nabla_x \cdot \nabla_y k(x,y) =  \nabla_x\cdot\Bigl[-\varphi'(r)\,\frac{u}{r}\Bigr] = -\nabla_x \cdot\Bigl[\underbrace{\tfrac{\varphi'(r)}{r}}_{g(r)}u\Bigr].
    $$
    Now in $d$ dimensions one has
    $$
-     \nabla_x\!\cdot\bigl[g(r)\,u\bigr] = g(r)\underbrace{\nabla_x\!\cdot u}_{=d} +u\cdot\nabla_x g(r) = dg(r)+g'(r)\frac{u\cdot u}{r}
+     \nabla_x \cdot\bigl[g(r)\,u\bigr] = g(r)\underbrace{\nabla_x\!\cdot u}_{=d} +u\cdot\nabla_x g(r) = dg(r)+g'(r)\frac{u\cdot u}{r}
      = d \frac{\varphi'(r)}{r} + \bigl(\tfrac{\varphi'(r)}{r}\bigr)'r.
    $$
    But
    $$
-     \Bigl(\frac{\varphi'(r)}{r}\Bigr)' = \frac{\varphi''(r) r - \varphi'(r)}{r^2}
-     \quad\Longrightarrow\quad r \Bigl(\frac{\varphi'(r)}{r}\Bigr)' = \varphi''(r) - \frac{\varphi'(r)}{r}.
+     \Bigl(\frac{\varphi'(r)}{r}\Bigr)' = \frac{\varphi''(r) r - \varphi'(r)}{r^2} \quad\rightarrow\quad r \Bigl(\frac{\varphi'(r)}{r}\Bigr)' = \varphi''(r) - \frac{\varphi'(r)}{r}.
    $$
    Hence
    $$
