@@ -191,7 +191,7 @@ The profile for the Gaussian kernel takes the form:
 
 $$
 \varphi(r)
-=\sigma^2 \exp\left(-\frac{r^2}{2\ell^2}\right), \quad r=||x-y||.
+=\sigma^2 \exp\left(-\frac{r^2}{2\ell^2}\right), \quad r=\|x-y\|.
 $$
 
 Thus, the required terms are:
@@ -222,10 +222,7 @@ and amplitude with two **shape parameters**
 Its radial profile is
 
 $$
-\varphi(r)
-=
-\sigma^{2}\Bigl(\gamma^{2}+\tfrac{r^{2}}{\ell^{2}}\Bigr)^{-\beta},
-\qquad r=\lVert x-y\rVert.
+\varphi(r) = \sigma^{2}\Bigl(\gamma^{2}+\tfrac{r^{2}}{\ell^{2}}\Bigr)^{-\beta}, \qquad r=\lVert x-y\rVert.
 $$
 
 Writing $u(r)=\gamma^{2}+\tfrac{r^{2}}{\ell^{2}}$, the required terms to evaluate the Stein kernel are:
@@ -234,13 +231,13 @@ $$
 \boxed{
 \begin{aligned}
 \varphi(r)
-&=\sigma^{2}\,u(r)^{-\beta}, \\
+&=\sigma^{2} u(r)^{-\beta}, \\
 \psi(r) = \frac{\varphi'(r)}{r}
 &=- \frac{2\beta\sigma^{2}}{\ell^{2}} u(r)^{-(\beta+1)}, \\
 \varphi''(r)
-&=\sigma^{2}\,u(r)^{-(\beta+2)}
+&=\sigma^{2} u(r)^{-(\beta+2)}
   \Bigl[
-     -\frac{2\beta}{\ell^{2}}\,u(r)
+     -\frac{2\beta}{\ell^{2}} u(r)
      +
      \frac{4\beta(\beta+1)\,r^{2}}{\ell^{4}}
   \Bigr].
