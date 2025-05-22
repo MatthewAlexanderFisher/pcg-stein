@@ -29,7 +29,7 @@ An issue with performing automatic differentiation to compute the divergence and
 To address this, we restrict our implementation to Langevin stein kernels for isotropic base kernels $k$, where the first and second derivatives are provided with the singularity removed. An *isotropic* kernel is a kernel $k:\mathbb{R}^d\times \mathbb{R}^d \rightarrow \mathbb{R}$ of the form
 
 $$
-k(x,y)\;=\;\varphi\bigl(r\bigr)\,,\qquad r = \|x - y\|\,.  
+k(x,y)=\varphi\bigl(r\bigr) \qquad r = \|x - y\|.  
 $$
 
 We can compute its gradient and divergence in closed form:
@@ -37,60 +37,35 @@ We can compute its gradient and divergence in closed form:
 1. **The gradients $\nabla_x k(x,y)$ and $\nabla_y k(x,y)$:**
    Let
    $$
-     u = x - y,\quad r = \|u\|\,, 
-     \quad\text{so}\quad \nabla_x r = \frac{u}{r}\,.
+     u = x - y,\quad r = \|u\|\, \quad\text{so}\quad \nabla_x r = \frac{u}{r}.
    $$
    Then by the chain‐rule
    $$
-     \nabla_x\,k(x,y)
-     = \varphi'(r)\,\nabla_x r
-     = \varphi'(r)\,\frac{x - y}{\|x - y\|}\,.
+     \nabla_x\,k(x,y)= \varphi'(r)\,\nabla_x r = \varphi'(r) \frac{x - y}{\|x - y\|}.
    $$
-
    Similarly $\nabla_y k(x,y) = -\nabla_x k(x,y)$.
-
 
 2. **The mixed divergence $\nabla_x\cdot\nabla_y\,k(x,y)$:**
    We seek
 
    $$
-     \nabla_x \cdot \nabla_y k(x,y) =  \nabla_x\!\cdot\Bigl[-\,\varphi'(r)\,\frac{u}{r}\Bigr]
-     = -\,\nabla_x\!\cdot\Bigl[\underbrace{\tfrac{\varphi'(r)}{r}}_{g(r)}\,u\Bigr].
+     \nabla_x \cdot \nabla_y k(x,y) =  \nabla_x\cdot\Bigl[-\varphi'(r)\,\frac{u}{r}\Bigr] = -\nabla_x\!\cdot\Bigl[\underbrace{\tfrac{\varphi'(r)}{r}}_{g(r)}u\Bigr].
    $$
-
    Now in $d$ dimensions one has
-
    $$
-     \nabla_x\!\cdot\bigl[g(r)\,u\bigr]
-     = g(r)\,\underbrace{\nabla_x\!\cdot u}_{=d}
-       \;+\;u\cdot\nabla_x g(r)
-     = d\,g(r)\;+\;g'(r)\,\frac{u\!\cdot\!u}{r}
-     = d\,\frac{\varphi'(r)}{r}
-       \;+\;\bigl(\tfrac{\varphi'(r)}{r}\bigr)'\,r\,.
+     \nabla_x\!\cdot\bigl[g(r)\,u\bigr] = g(r)\underbrace{\nabla_x\!\cdot u}_{=d} +u\cdot\nabla_x g(r) = dg(r)+g'(r)\frac{u\cdot u}{r}
+     = d \frac{\varphi'(r)}{r} + \bigl(\tfrac{\varphi'(r)}{r}\bigr)'r.
    $$
-
    But
-
    $$
-     \Bigl(\frac{\varphi'(r)}{r}\Bigr)'
-     = \frac{\varphi''(r)\,r - \varphi'(r)}{r^2}
-     \quad\Longrightarrow\quad
-     r\,\Bigl(\frac{\varphi'(r)}{r}\Bigr)'
-     = \varphi''(r) - \frac{\varphi'(r)}{r}.
+     \Bigl(\frac{\varphi'(r)}{r}\Bigr)' = \frac{\varphi''(r) r - \varphi'(r)}{r^2}
+     \quad\Longrightarrow\quad r \Bigl(\frac{\varphi'(r)}{r}\Bigr)' = \varphi''(r) - \frac{\varphi'(r)}{r}.
    $$
-
    Hence
-
    $$
-     \nabla_x\!\cdot\nabla_y\,k(x,y)
-     = -\Bigl[d\,\frac{\varphi'(r)}{r}
-        \;+\;\bigl(\varphi''(r)-\tfrac{\varphi'(r)}{r}\bigr)\Bigr]
-     = -\,\Bigl[\varphi''(r) + (d-1)\,\frac{\varphi'(r)}{r}\Bigr].
+     \nabla_x \cdot\nabla_y\,k(x,y) = -\Bigl[d \frac{\varphi'(r)}{r} +\bigl(\varphi''(r)-\tfrac{\varphi'(r)}{r}\bigr)\Bigr]= -\Bigl[\varphi''(r) + (d-1)\frac{\varphi'(r)}{r}\Bigr].
    $$
-
-
 Thus, our final required derivatives to construct the Stein kernel are:
-
 $$
 \boxed{
 \begin{aligned}
@@ -100,8 +75,8 @@ $$
 &= -\varphi'\bigl(\|x-y\|\bigr)\,\frac{x-y}{\|x-y\|} = -\frac{\varphi'(r)}{r}(x-y),\\
 \nabla_x\!\cdot\nabla_y\,k(x,y)
 &= -\Bigl[\varphi''\bigl(\|x-y\|\bigr)
-         + (d-1)\,\frac{\varphi'\bigl(\|x-y\|\bigr)}{\|x-y\|}\Bigr] = -\Bigl[\varphi''\bigl(r \bigr)
-         + (d-1)\,\frac{\varphi'\bigl(r\bigr)}{r}\Bigr] .
+         + (d-1)\frac{\varphi'\bigl(\|x-y\|\bigr)}{\|x-y\|}\Bigr] = -\Bigl[\varphi''\bigl(r \bigr)
+         + (d-1)\frac{\varphi'\bigl(r\bigr)}{r}\Bigr] .
 \end{aligned}
 }
 $$
