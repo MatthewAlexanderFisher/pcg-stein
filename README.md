@@ -34,7 +34,7 @@ $$
 
 We can compute its gradient and divergence in closed form:
 
-1. **The gradients $\nabla_x k(x,y)$ and $\nabla_y k(x,y)$:**
+##### The gradients $\nabla_x k(x,y)$ and $\nabla_y k(x,y)$:
    Let
    $$
      u = x - y,\quad r = \|u\|\, \quad\text{so}\quad \nabla_x r = \frac{u}{r}.
@@ -45,9 +45,8 @@ We can compute its gradient and divergence in closed form:
    $$
    Similarly $\nabla_y k(x,y) = -\nabla_x k(x,y)$.
 
-2. **The mixed divergence $\nabla_x\cdot\nabla_y\,k(x,y)$:**
+##### The mixed divergence $\nabla_x\cdot\nabla_y\,k(x,y)$:
    We seek
-
    $$
      \nabla_x \cdot \nabla_y k(x,y) =  \nabla_x\cdot\Bigl[-\varphi'(r)\,\frac{u}{r}\Bigr] = -\nabla_x\!\cdot\Bigl[\underbrace{\tfrac{\varphi'(r)}{r}}_{g(r)}u\Bigr].
    $$
