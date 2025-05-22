@@ -81,12 +81,12 @@ $$
 \boxed{
 \begin{aligned}
 \nabla_x\,k(x,y) 
-&= \varphi'\bigl(\|x-y\|\bigr)\,\frac{x-y}{\|x-y\|} = \frac{\varphi'(r)}{r}(x-y),\\
+&= \varphi'\bigl(\lVert x-y\rVert\bigr)\,\frac{x-y}{\lVert x-y\rVert} = \frac{\varphi'(r)}{r}(x-y),\\
 \nabla_y\,k(x,y) 
-&= -\varphi'\bigl(\|x-y\|\bigr)\,\frac{x-y}{\|x-y\|} = -\frac{\varphi'(r)}{r}(x-y),\\
+&= -\varphi'\bigl(\lVert x-y\rVert\bigr)\,\frac{x-y}{\lVert x-y\rVert} = -\frac{\varphi'(r)}{r}(x-y),\\
 \nabla_x\!\cdot\nabla_y\,k(x,y)
-&= -\Bigl[\varphi''\bigl(\|x-y\|\bigr)
-         + (d-1)\frac{\varphi'\bigl(\|x-y\|\bigr)}{\|x-y\|}\Bigr] = -\Bigl[\varphi''\bigl(r \bigr)
+&= -\Bigl[\varphi''\bigl(\lVert x-y\rVert\bigr)
+         + (d-1)\frac{\varphi'\bigl(\lVert x-y\rVert\bigr)}{\lVert x-y\rVert}\Bigr] = -\Bigl[\varphi''\bigl(r \bigr)
          + (d-1)\frac{\varphi'\bigl(r\bigr)}{r}\Bigr] .
 \end{aligned}
 }
@@ -191,7 +191,7 @@ The profile for the Gaussian kernel takes the form:
 
 $$
 \varphi(r)
-=\sigma^2 \exp\left(-\frac{r^2}{2\ell^2}\right), \quad r=\|x-y\|.
+=\sigma^2 \exp\left(-\frac{r^2}{2\ell^2}\right), \quad r=\lVert x-y\rVert.
 $$
 
 Thus, the required terms are:
@@ -231,7 +231,7 @@ $$
 \boxed{
 \begin{aligned}
 \varphi(r)
-&=\sigma^{2} u(r)^{-\beta}, \\
+&=\sigma^{2}u(r)^{-\beta}, \\
 \psi(r) = \frac{\varphi'(r)}{r}
 &=- \frac{2\beta\sigma^{2}}{\ell^{2}} u(r)^{-(\beta+1)}, \\
 \varphi''(r)
