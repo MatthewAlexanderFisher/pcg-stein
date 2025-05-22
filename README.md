@@ -124,8 +124,8 @@ The following kernels are currently implemented:
 
 | **Kernel class** | **Radial Profile** $\varphi(r)$                                                                             | **Extra hyperparameters**                          |
 | ---------------- | ----------------------------------------------------------------------------------------------------------- | -------------------------------------------------- |
-| `Matern52Kernel` | $\sigma^2 \left( 1 + cr + \tfrac{c^2}{3} r^2 \right) e^{-cr},\quad c = \sqrt{5}/\ell$                       | *(none)* — fixed smoothness $\nu = \tfrac{5}{2}$   |
-| `Matern72Kernel` | $\sigma^2 \left( 1 + cr + \tfrac{c^2}{3} r^2 + \tfrac{c^3}{15} r^3 \right) e^{-cr},\quad c = \sqrt{7}/\ell$ | *(none)* — fixed smoothness $\nu = \tfrac{7}{2}$   |
+| `Matern52Kernel` | $\sigma^2 \left( 1 + cr + \tfrac{c^2}{3} r^2 \right) e^{-cr},\quad c = \tfrac{\sqrt{5}}{\ell}$                       | *(none)* — fixed smoothness $\nu = \tfrac{5}{2}$   |
+| `Matern72Kernel` | $\sigma^2 \left( 1 + cr + \tfrac{c^2}{3} r^2 + \tfrac{c^3}{15} r^3 \right) e^{-cr},\quad c = \tfrac{\sqrt{7}}{\ell}$ | *(none)* — fixed smoothness $\nu = \tfrac{7}{2}$   |
 | `GaussianKernel` | $\sigma^2 \exp\left(-\tfrac{r^2}{2\ell^2}\right)$                                                           | *(none)*                                           |
 | `IMQKernel`      | $\sigma^2 \left( \gamma^2 + \tfrac{r^2}{\ell^2} \right)^{-\beta}$                                           | `gamma` → $\gamma > 0$, `beta` → $\beta \in (0,1)$ |
 
