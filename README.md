@@ -82,11 +82,11 @@ Thus, our final required derivatives to construct the Stein kernel are:
 $$
 \boxed{
 \begin{aligned}
-\nabla_x\,k(x,y) 
-&= \varphi'\bigl(\lVert x-y\rVert\bigr)\,\frac{x-y}{\lVert x-y\rVert} = \frac{\varphi'(r)}{r}(x-y),\\
-\nabla_y\,k(x,y) 
-&= -\varphi'\bigl(\lVert x-y\rVert\bigr)\,\frac{x-y}{\lVert x-y\rVert} = -\frac{\varphi'(r)}{r}(x-y),\\
-\nabla_x\!\cdot\nabla_y\,k(x,y)
+\nabla_x k(x,y) 
+&= \varphi'\bigl(\lVert x-y\rVert\bigr) \frac{x-y}{\lVert x-y\rVert} = \frac{\varphi'(r)}{r}(x-y),\\
+\nabla_y k(x,y) 
+&= -\varphi'\bigl(\lVert x-y\rVert\bigr) \frac{x-y}{\lVert x-y\rVert} = -\frac{\varphi'(r)}{r}(x-y),\\
+\nabla_x \cdot\nabla_y k(x,y)
 &= -\Bigl[\varphi''\bigl(\lVert x-y\rVert\bigr)
          + (d-1)\frac{\varphi'\bigl(\lVert x-y\rVert\bigr)}{\lVert x-y\rVert}\Bigr] = -\Bigl[\varphi''\bigl(r \bigr)
          + (d-1)\frac{\varphi'\bigl(r\bigr)}{r}\Bigr] .
