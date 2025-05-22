@@ -181,7 +181,7 @@ def pcg(
             = \frac{ (\mathbf{w}_k^\top \mathbf{K}_p \mathbf{w}_k )^{1/2} }{ \mathbf{1}^\top \mathbf{w}_k },
 
         where :math:`\mathbf{w}_k` is the solution at iteration :math:`k`, and :math:`\mathbf{K}_p` is
-        the kernel matrix under a preconditioned kernel. This provides a proxy for integration error
+        the Stein kernel matrix. This provides a proxy for integration error
         when the RKHS norm :math:`\|v\|_{\mathcal{H}(k_p)}` is unknown.
     """
 

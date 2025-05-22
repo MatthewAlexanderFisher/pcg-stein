@@ -238,7 +238,7 @@ class NystromDiagonal(Preconditioner):
     r"""
     Diagonally-weighted Random Index Nystrom preconditioner using the Woodbury formula.
 
-    Approximates :math:`(K + \eta * I)^{-1}` by sampling columns of :math:`K` with probability proportional to their diagonal
+    Approximates :math:`(K + \eta I)^{-1}` by sampling columns of :math:`K` with probability proportional to their diagonal
     values, and then applies the Woodbury identity for an approximate inverse.
 
     This method differs from standard Nystrom by performing weighted (importance) column sampling.
@@ -248,7 +248,7 @@ class NystromDiagonal(Preconditioner):
     display_name: str = "Nystrom (diagonal sampling)"  
 
     def __call__(self, key: Array, matrix: Array, **kwargs) -> Array:
-        """
+        r"""
         Construct the diagonal-weighted Nystrom preconditioner using the Woodbury formula.
 
         Args:
@@ -308,7 +308,7 @@ class NystromDiagonal(Preconditioner):
 
 
 class RandomisedSVD(Preconditioner):
-    """
+    r"""
     Computes a low-rank Woodbury inverse preconditioner using Randomized SVD with power iterations.
 
     This approximates :math:`(K + \eta I)^{-1}` via a randomized SVD to get the dominant subspace,

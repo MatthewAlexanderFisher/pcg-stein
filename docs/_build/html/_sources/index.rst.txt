@@ -14,6 +14,6 @@ where :math:`K` is a symmetric PSD Gram matrix produced by a Stein kernel.
    :caption: API Reference
 
    pcg_stein
-   pcg_stein.kernel
-   pcg_stein.pcg
-   pcg_stein.precon
+   .. pcg_stein.kernel
+   .. pcg_stein.pcg
+   .. pcg_stein.precon

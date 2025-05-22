@@ -36,6 +36,14 @@ pcg\_stein.precon module
    :show-inheritance:
    :undoc-members:
 
+pcg\_stein.registry module
+--------------------------
+
+.. automodule:: pcg_stein.registry
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
 pcg\_stein.util module
 ----------------------
 

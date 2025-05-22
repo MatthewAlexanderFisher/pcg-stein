@@ -40,13 +40,13 @@ We can compute its gradient and divergence in closed form:
    Let
 
    $$
-     u = x - y,\quad r = \|u\|\, \quad\text{so}\quad \nabla_x r = \frac{u}{r}.
+     u = x - y,\quad r = \lVert u \rVert \quad\text{so}\quad \nabla_x r = \frac{u}{r}.
    $$
 
    Then by the chain‐rule
 
    $$
-     \nabla_x\,k(x,y)= \varphi'(r)\,\nabla_x r = \varphi'(r) \frac{x - y}{\lVert x-y\rVert}.
+     \nabla_x k(x,y)= \varphi'(r) \nabla_x r = \varphi'(r) \frac{x - y}{\lVert x-y\rVert}.
    $$
 
    Similarly $\nabla_y k(x,y) = -\nabla_x k(x,y)$.
@@ -55,13 +55,13 @@ We can compute its gradient and divergence in closed form:
    We seek
 
    $$
-     \nabla_x \cdot \nabla_y k(x,y) =  \nabla_x\cdot\Bigl[-\varphi'(r)\,\frac{u}{r}\Bigr] = -\nabla_x \cdot\Bigl[\underbrace{\tfrac{\varphi'(r)}{r}}_{g(r)}u\Bigr].
+     \nabla_x \cdot \nabla_y k(x,y) =  \nabla_x\cdot\Bigl[-\varphi'(r) \frac{u}{r}\Bigr] = -\nabla_x \cdot\Bigl[\underbrace{\tfrac{\varphi'(r)}{r}}_{g(r)}u\Bigr].
    $$
 
    Now in $d$ dimensions one has
 
    $$
-     \nabla_x \cdot\bigl[g(r)\,u\bigr] = g(r)\underbrace{\nabla_x\!\cdot u}_{=d} +u\cdot\nabla_x g(r) = dg(r)+g'(r)\frac{u\cdot u}{r}
+     \nabla_x \cdot\bigl[g(r) u\bigr] = g(r)\underbrace{\nabla_x\!\cdot u}_{=d} +u\cdot\nabla_x g(r) = dg(r)+g'(r)\frac{u\cdot u}{r}
      = d \frac{\varphi'(r)}{r} + \bigl(\tfrac{\varphi'(r)}{r}\bigr)'r.
    $$
 
@@ -74,7 +74,7 @@ We can compute its gradient and divergence in closed form:
    Hence
 
    $$
-     \nabla_x \cdot\nabla_y\,k(x,y) = -\Bigl[d \frac{\varphi'(r)}{r} +\bigl(\varphi''(r)-\tfrac{\varphi'(r)}{r}\bigr)\Bigr]= -\Bigl[\varphi''(r) + (d-1)\frac{\varphi'(r)}{r}\Bigr].
+     \nabla_x \cdot\nabla_y k(x,y) = -\Bigl[d \frac{\varphi'(r)}{r} +\bigl(\varphi''(r)-\tfrac{\varphi'(r)}{r}\bigr)\Bigr]= -\Bigl[\varphi''(r) + (d-1)\frac{\varphi'(r)}{r}\Bigr].
    $$
 
 Thus, our final required derivatives to construct the Stein kernel are:
@@ -140,7 +140,7 @@ The Matérn family is indexed by the smoothness parameter $\nu$.
 For $\nu=\tfrac52$ the profile is
 
 $$
-\varphi(r) = \sigma^{2}\Bigl( 1 + c r + \tfrac{c^{2}}{3}\,r^{2} \Bigr) e^{-c r},
+\varphi(r) = \sigma^{2}\Bigl( 1 + c r + \tfrac{c^{2}}{3} r^{2} \Bigr) e^{-c r},
 \quad
 c=\frac{\sqrt5}{\ell}, \quad  r=\lVert x-y\rVert .
 $$
@@ -149,7 +149,7 @@ $$
 \boxed{
 \begin{aligned}
 \varphi(r)   &= \sigma^{2}\Bigl(1 + c r + \tfrac{c^{2}}{3}r^{2}\Bigr) e^{-c r}, \\
-\psi(r) = \frac{\varphi'(r)}{r}  &= - \sigma^{2}\,\frac{c^{2}}{3}\Bigl(1 + c r\Bigr) e^{-c r}, \\
+\psi(r) = \frac{\varphi'(r)}{r}  &= - \sigma^{2} \frac{c^{2}}{3}\Bigl(1 + c r\Bigr) e^{-c r}, \\
 \varphi''(r) &= - \sigma^{2} \frac{c^{2}}{3}\Bigl(1 + c r - c^{2} r^{2}\Bigr) e^{-c r}.
 \end{aligned}
 }
@@ -241,7 +241,7 @@ $$
   \Bigl[
      -\frac{2\beta}{\ell^{2}} u(r)
      +
-     \frac{4\beta(\beta+1)\,r^{2}}{\ell^{4}}
+     \frac{4\beta(\beta+1) r^{2}}{\ell^{4}}
   \Bigr].
 \end{aligned}}
 $$

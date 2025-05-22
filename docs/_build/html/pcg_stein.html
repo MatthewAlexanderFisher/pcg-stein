@@ -294,26 +294,27 @@
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pcg_stein.distribution.BayesianLogisticRegression.from_synthetic">
-<em class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_synthetic</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_samples</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">true_beta</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">add_intercept</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">X</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma_prior</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pcg_stein.distribution.BayesianLogisticRegression.from_synthetic" title="Link to this definition">¶</a></dt>
-<dd><p>Generate synthetic (X, y) from a known coefficient vector.</p>
+<em class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_synthetic</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_samples</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">true_beta</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">add_intercept</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">X</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma_prior</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pcg_stein.distribution.BayesianLogisticRegression.from_synthetic" title="Link to this definition">¶</a></dt>
+<dd><p>Generate object with generated synthetic data (X, y) from a known parameter vector.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>key</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></span>) – JAX PRNG key.</p></li>
-<li><p><strong>n_samples</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span>) – Number of rows to simulate.</p></li>
-<li><p><strong>true_beta</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></span>) – 1D array of shape (d,). If <cite>add_intercept=True</cite>, element 0 is the intercept;
-otherwise all elements are slopes.</p></li>
-<li><p><strong>add_intercept</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to prepend a column of ones to X so that its number of columns equals
-<cite>len(true_beta)</cite>. Defaults to True.</p></li>
-<li><p><strong>X</strong> (<em>optional</em>) – Design matrix to reuse. See shape rules below.</p></li>
-<li><p><strong>sigma_prior</strong> (<em>float</em><em> or </em><em>Array</em>) – Prior scale(s) for generating synthetic noise.</p></li>
+<li><p><strong>key</strong> (<em>Array</em>) – JAX PRNG key used for random number generation.</p></li>
+<li><p><strong>n_samples</strong> (<em>int</em>) – Number of samples (rows) to generate.</p></li>
+<li><p><strong>true_beta</strong> (<em>Array</em>) – 1D array of shape (d,). If <cite>add_intercept=True</cite>, the first element is treated
+as the intercept; the remaining elements correspond to slopes. Otherwise, all
+elements are treated as slopes.</p></li>
+<li><p><strong>add_intercept</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, prepends a column of ones to the design matrix X so that its number
+of columns matches <cite>len(true_beta)</cite>. Defaults to True.</p></li>
+<li><p><strong>X</strong> (<em>Array</em><em>, </em><em>optional</em>) – Optional design matrix to reuse. See “Shape rules” below for requirements
+depending on <cite>add_intercept</cite>.</p></li>
+<li><p><strong>sigma_prior</strong> (<em>float</em><em> or </em><em>Array</em><em>, </em><em>optional</em>) – Standard deviation(s) of the Gaussian prior distribution over the true
+coefficient vector <span class="math notranslate nohighlight">\(\beta \sim \mathcal{N}(0, \sigma_{\text{prior}}^2 I)\)</span>.
+Controls the magnitude of sampled coefficients. Defaults to 1.0.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Tuple (X, y) where X is the design matrix and y is the response vector.</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Tuple[Array, Array]</p>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#pcg_stein.distribution.BayesianLogisticRegression" title="pcg_stein.distribution.BayesianLogisticRegression"><code class="xref py py-class docutils literal notranslate"><span class="pre">BayesianLogisticRegression</span></code></a></span></p>
 </dd>
 </dl>
 <p>Shape rules:</p>
@@ -592,6 +593,16 @@ i.e. <span class="math notranslate nohighlight">\(\psi(r) = \varphi'(r) / r\)</s
 </dl>
 </dd></dl>
 
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pcg_stein.kernel.GaussianKernel.display_name">
+<span class="sig-name descname"><span class="pre">display_name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'Gaussian</span> <span class="pre">(RBF)'</span></em><a class="headerlink" href="#pcg_stein.kernel.GaussianKernel.display_name" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pcg_stein.kernel.GaussianKernel.name">
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'Gaussian'</span></em><a class="headerlink" href="#pcg_stein.kernel.GaussianKernel.name" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </dd></dl>
 
 <dl class="py class">
@@ -699,6 +710,16 @@ and <span class="math notranslate nohighlight">\(\gamma\)</span>, <span class="m
 </dl>
 </dd></dl>
 
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pcg_stein.kernel.IMQKernel.display_name">
+<span class="sig-name descname"><span class="pre">display_name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'Inverse</span> <span class="pre">Multiquadric</span> <span class="pre">(IMQ)'</span></em><a class="headerlink" href="#pcg_stein.kernel.IMQKernel.display_name" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pcg_stein.kernel.IMQKernel.name">
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'IMQ'</span></em><a class="headerlink" href="#pcg_stein.kernel.IMQKernel.name" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </dd></dl>
 
 <dl class="py class">
@@ -788,6 +809,11 @@ if both <cite>X</cite> and <cite>Y</cite> are single points.</p>
 </dd>
 </dl>
 </dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pcg_stein.kernel.Kernel.name">
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'base_kernel'</span></em><a class="headerlink" href="#pcg_stein.kernel.Kernel.name" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pcg_stein.kernel.Kernel.stein_matrix">
@@ -909,6 +935,16 @@ i.e. <span class="math notranslate nohighlight">\(\psi(r) = \varphi'(r)/r\)</spa
 </dl>
 </dd></dl>
 
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pcg_stein.kernel.Matern52Kernel.display_name">
+<span class="sig-name descname"><span class="pre">display_name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'Matérn</span> <span class="pre">5/2'</span></em><a class="headerlink" href="#pcg_stein.kernel.Matern52Kernel.display_name" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pcg_stein.kernel.Matern52Kernel.name">
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'Matern52'</span></em><a class="headerlink" href="#pcg_stein.kernel.Matern52Kernel.name" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </dd></dl>
 
 <dl class="py class">
@@ -1004,6 +1040,16 @@ i.e. <span class="math notranslate nohighlight">\(\psi(r) = \varphi'(r) / r\)</s
 </dl>
 </dd></dl>
 
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pcg_stein.kernel.Matern72Kernel.display_name">
+<span class="sig-name descname"><span class="pre">display_name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'Matérn</span> <span class="pre">7/2'</span></em><a class="headerlink" href="#pcg_stein.kernel.Matern72Kernel.display_name" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pcg_stein.kernel.Matern72Kernel.name">
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'Matern72'</span></em><a class="headerlink" href="#pcg_stein.kernel.Matern72Kernel.name" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </dd></dl>
 
 </section>
@@ -1095,7 +1141,7 @@ Defaults to 0.0 (disabled).</p></li>
 = \frac{ (\mathbf{w}_k^\top \mathbf{K}_p \mathbf{w}_k )^{1/2} }{ \mathbf{1}^\top \mathbf{w}_k },\]</div>
 </div>
 <p>where <span class="math notranslate nohighlight">\(\mathbf{w}_k\)</span> is the solution at iteration <span class="math notranslate nohighlight">\(k\)</span>, and <span class="math notranslate nohighlight">\(\mathbf{K}_p\)</span> is
-the kernel matrix under a preconditioned kernel. This provides a proxy for integration error
+the Stein kernel matrix. This provides a proxy for integration error
 when the RKHS norm <span class="math notranslate nohighlight">\(\|v\|_{\mathcal{H}(k_p)}\)</span> is unknown.</p>
 </dd></dl>
 
@@ -1108,17 +1154,17 @@ when the RKHS norm <span class="math notranslate nohighlight">\(\|v\|_{\mathcal{
 <dd><p>Bases: <a class="reference internal" href="#pcg_stein.precon.Preconditioner" title="pcg_stein.precon.Preconditioner"><code class="xref py py-class docutils literal notranslate"><span class="pre">Preconditioner</span></code></a></p>
 <dl class="py method">
 <dt class="sig sig-object py" id="pcg_stein.precon.BlockJacobi.__call__">
-<span class="sig-name descname"><span class="pre">__call__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">matrix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pcg_stein.precon.BlockJacobi.__call__" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">__call__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">matrix</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pcg_stein.precon.BlockJacobi.__call__" title="Link to this definition">¶</a></dt>
 <dd><p>Constructs a preconditioner using the Block Jacobi approximation, where the
 matrix is partitioned into diagonal blocks and each is inverted separately.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
+<li><p><strong>key</strong> (<em>Array</em>) – JAX PRNG key (ignored, included for API consistency).</p></li>
 <li><p><strong>matrix</strong> (<em>Array</em>) – Symmetric positive semi-definite matrix of shape (n, n) to precondition.</p></li>
-<li><p><strong>key</strong> (<em>Array</em><em>, </em><em>optional</em>) – JAX PRNG key (ignored, included for API consistency).</p></li>
 <li><p><strong>block_size</strong> (<em>int</em><em>, </em><em>keyword-only</em>) – Size of the diagonal blocks used in the Jacobi approximation (required).</p></li>
-<li><p><strong>max_cond_number</strong> (<em>float</em><em>, </em><em>optional</em>) – Maximum condition number allowed for spectral pseudo-inverse.
-Defaults to 1e9.</p></li>
+<li><p><strong>max_cond_number</strong> – float, optional
+Maximum allowed condition number for pseudoinverse (default 1e14).</p></li>
 <li><p><strong>kwargs</strong> (<em>Any</em>)</p></li>
 </ul>
 </dd>
@@ -1132,8 +1178,13 @@ Defaults to 1e9.</p></li>
 </dd></dl>
 
 <dl class="py attribute">
+<dt class="sig sig-object py" id="pcg_stein.precon.BlockJacobi.display_name">
+<span class="sig-name descname"><span class="pre">display_name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'Block</span> <span class="pre">Jacobi'</span></em><a class="headerlink" href="#pcg_stein.precon.BlockJacobi.display_name" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
 <dt class="sig sig-object py" id="pcg_stein.precon.BlockJacobi.name">
-<span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'Block</span> <span class="pre">Jacobi'</span></em><a class="headerlink" href="#pcg_stein.precon.BlockJacobi.name" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'BlockJacobi'</span></em><a class="headerlink" href="#pcg_stein.precon.BlockJacobi.name" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -1145,17 +1196,22 @@ Defaults to 1e9.</p></li>
 <p>Fully–Independent Training Conditional (FITC) pre-conditioner.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="pcg_stein.precon.FITC.__call__">
-<span class="sig-name descname"><span class="pre">__call__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">matrix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pcg_stein.precon.FITC.__call__" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">__call__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">matrix</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pcg_stein.precon.FITC.__call__" title="Link to this definition">¶</a></dt>
 <dd><p>Constructs a preconditioner using the FITC (Fully Independent Training Conditional) approximation.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>matrix</strong> (<em>Array</em>) – A symmetric positive semi-definite kernel matrix of shape (n, n).</p></li>
-<li><p><strong>key</strong> (<em>Array</em>) – JAX PRNG key used for selecting inducing indices if not explicitly provided.</p></li>
-<li><p><strong>m</strong> (<em>int</em><em>, </em><em>keyword-only</em>) – Number of inducing points (required).</p></li>
-<li><p><strong>nugget</strong> (<em>float</em><em>, </em><em>keyword-only</em>) – Diagonal jitter <span class="math notranslate nohighlight">\(\sigma^2\)</span> added to the kernel matrix (required).</p></li>
+<li><p><strong>key</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></span>) – Array
+Random key for reproducibility in random projection.</p></li>
+<li><p><strong>matrix</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></span>) – Array (n, n)
+Symmetric matrix to be preconditioned.</p></li>
+<li><p><strong>m</strong> (<em>int</em>) – required in kwargs.
+Number of inducing points (required).</p></li>
+<li><p><strong>nugget</strong> (<em>float</em>) – required in kwargs.
+Diagonal regulariser in Woodbury inverse.</p></li>
 <li><p><strong>indices</strong> (<em>Array</em><em> or </em><em>list</em><em> of </em><em>int</em><em>, </em><em>optional</em>) – Explicit array of inducing indices to use. If not provided, indices are selected using <cite>key</cite>.</p></li>
-<li><p><strong>max_cond_number</strong> (<em>float</em><em>, </em><em>optional</em>) – Maximum condition number threshold for applying a spectral pseudo-inverse.</p></li>
+<li><p><strong>max_cond_number</strong> – float, optional
+Maximum allowed condition number for pseudoinverse (default 1e14).</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -1168,6 +1224,11 @@ Defaults to 1e9.</p></li>
 </dd></dl>
 
 <dl class="py attribute">
+<dt class="sig sig-object py" id="pcg_stein.precon.FITC.display_name">
+<span class="sig-name descname"><span class="pre">display_name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'FITC'</span></em><a class="headerlink" href="#pcg_stein.precon.FITC.display_name" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
 <dt class="sig sig-object py" id="pcg_stein.precon.FITC.name">
 <span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'FITC'</span></em><a class="headerlink" href="#pcg_stein.precon.FITC.name" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -1178,157 +1239,27 @@ Defaults to 1e9.</p></li>
 <dt class="sig sig-object py" id="pcg_stein.precon.Nystrom">
 <em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pcg_stein.precon.</span></span><span class="sig-name descname"><span class="pre">Nystrom</span></span><a class="headerlink" href="#pcg_stein.precon.Nystrom" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pcg_stein.precon.Preconditioner" title="pcg_stein.precon.Preconditioner"><code class="xref py py-class docutils literal notranslate"><span class="pre">Preconditioner</span></code></a></p>
-<p>Random Index Nystrom preconditioner.</p>
-<p>Approximates a symmetric matrix via a low-rank factorisation using random subsampling (by default).</p>
+<p>Random Index Nystrom preconditioner using the Woodbury formula.</p>
+<p>Approximates <span class="math notranslate nohighlight">\((K + \eta  I)^{-1}\)</span> using random column sampling and the Woodbury identity.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="pcg_stein.precon.Nystrom.__call__">
-<span class="sig-name descname"><span class="pre">__call__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">matrix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_mat_and_precon</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pcg_stein.precon.Nystrom.__call__" title="Link to this definition">¶</a></dt>
-<dd><p>Construct the Nystrom preconditioner.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>matrix</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></span>) – (n, n) symmetric matrix.</p></li>
-<li><p><strong>key</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></span>) – JAX random key.</p></li>
-<li><p><strong>return_mat_and_precon</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span>) – bool (default False)
-Whether to return both the approximated matrix and its preconditioner (approximate inverse).
-If True, the function returns a tuple <cite>(preconditioner, matrix_approx)</cite>; otherwise, only the preconditioner.</p></li>
-<li><p><strong>m</strong> – int, required.
-Number of columns/rows for Nystrom approximation.</p></li>
-<li><p><strong>max_cond_number</strong> – float, optional.
-Max condition number for pseudoinverse (default 1e9).</p></li>
-<li><p><strong>indices</strong> – array or None, optional.
-Explicit indices for Nystrom subset.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></span></p>
-</dd>
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>(n, n) Nystrom preconditioner matrix.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pcg_stein.precon.Nystrom.name">
-<span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'Nystrom</span> <span class="pre">(no</span> <span class="pre">Woodbury)'</span></em><a class="headerlink" href="#pcg_stein.precon.Nystrom.name" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="pcg_stein.precon.NystromRandomDiagonalWoodbury">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pcg_stein.precon.</span></span><span class="sig-name descname"><span class="pre">NystromRandomDiagonalWoodbury</span></span><a class="headerlink" href="#pcg_stein.precon.NystromRandomDiagonalWoodbury" title="Link to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#pcg_stein.precon.Preconditioner" title="pcg_stein.precon.Preconditioner"><code class="xref py py-class docutils literal notranslate"><span class="pre">Preconditioner</span></code></a></p>
-<p>Diagonally-weighted Random Index Nystrom preconditioner using the Woodbury formula.</p>
-<p>Approximates (K + nugget * I)^{-1} by sampling columns of K with probability proportional to their diagonal
-values, and then applies the Woodbury identity for an approximate inverse.</p>
-<p>This method differs from standard Nystrom by performing weighted (importance) column sampling.</p>
-<dl class="py method">
-<dt class="sig sig-object py" id="pcg_stein.precon.NystromRandomDiagonalWoodbury.__call__">
-<span class="sig-name descname"><span class="pre">__call__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">matrix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pcg_stein.precon.NystromRandomDiagonalWoodbury.__call__" title="Link to this definition">¶</a></dt>
-<dd><p>Construct the diagonal-weighted Nystrom preconditioner using the Woodbury formula.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>matrix</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></span>) – Array (n, n)
-Symmetric matrix to be preconditioned.</p></li>
-<li><p><strong>key</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></span>) – Array
-Random key for reproducibility in sampling.</p></li>
-<li><p><strong>m</strong> – int, required in kwargs
-Number of columns/rows to sample for the Nystrom approximation.</p></li>
-<li><p><strong>max_cond_number</strong> – float, optional in kwargs
-Maximum allowed condition number for pseudoinverse (default 1e9).</p></li>
-<li><p><strong>nugget</strong> – float, required in kwargs
-Diagonal regularization parameter, added to the submatrix.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><dl class="simple">
-<dt>Array (n, n)</dt><dd><p>Approximate inverse (K + nugget * I)^{-1} constructed via weighted Nystrom sampling and Woodbury identity.</p>
-</dd>
-</dl>
-</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>precon</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pcg_stein.precon.NystromRandomDiagonalWoodbury.name">
-<span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'Nystrom</span> <span class="pre">(diagonal</span> <span class="pre">sampling)'</span></em><a class="headerlink" href="#pcg_stein.precon.NystromRandomDiagonalWoodbury.name" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="pcg_stein.precon.NystromRandomWoodbury">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pcg_stein.precon.</span></span><span class="sig-name descname"><span class="pre">NystromRandomWoodbury</span></span><a class="headerlink" href="#pcg_stein.precon.NystromRandomWoodbury" title="Link to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#pcg_stein.precon.Preconditioner" title="pcg_stein.precon.Preconditioner"><code class="xref py py-class docutils literal notranslate"><span class="pre">Preconditioner</span></code></a></p>
-<p>Random Projection Nystrom preconditioner using the Woodbury formula.</p>
-<p>Approximates (K + nugget * I)^{-1} by projecting the n x n matrix K into an m-dimensional random subspace,
-and applying the Woodbury identity to the resulting low-rank matrix.</p>
-<p>This method differs from standard Nystrom by using a random Gaussian projection Ω (not random sampling of columns).</p>
-<dl class="py method">
-<dt class="sig sig-object py" id="pcg_stein.precon.NystromRandomWoodbury.__call__">
-<span class="sig-name descname"><span class="pre">__call__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">matrix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pcg_stein.precon.NystromRandomWoodbury.__call__" title="Link to this definition">¶</a></dt>
-<dd><p>Construct the random projection Nystrom preconditioner using the Woodbury formula.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>matrix</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></span>) – Array (n, n)
-Symmetric matrix to be preconditioned.</p></li>
-<li><p><strong>key</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></span>) – Array
-Random key for reproducibility in random projection.</p></li>
-<li><p><strong>m</strong> – int, required in kwargs
-Target dimension for the projection (rank of the approximation).</p></li>
-<li><p><strong>max_cond_number</strong> – float, optional in kwargs
-Maximum allowed condition number for pseudoinverse (default 1e9).</p></li>
-<li><p><strong>nugget</strong> – float, required in kwargs
-Diagonal regularization parameter, added to the projected matrix.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><dl class="simple">
-<dt>Array (n, n)</dt><dd><p>Approximate inverse (K + nugget * I)^{-1} constructed via random projection and the Woodbury identity.</p>
-</dd>
-</dl>
-</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>precon</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pcg_stein.precon.NystromRandomWoodbury.name">
-<span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'Nystrom</span> <span class="pre">(random</span> <span class="pre">projection)'</span></em><a class="headerlink" href="#pcg_stein.precon.NystromRandomWoodbury.name" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="pcg_stein.precon.NystromWoodbury">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pcg_stein.precon.</span></span><span class="sig-name descname"><span class="pre">NystromWoodbury</span></span><a class="headerlink" href="#pcg_stein.precon.NystromWoodbury" title="Link to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#pcg_stein.precon.Preconditioner" title="pcg_stein.precon.Preconditioner"><code class="xref py py-class docutils literal notranslate"><span class="pre">Preconditioner</span></code></a></p>
-<p>Random Index Nystrom preconditioner using the Woodbury formula.</p>
-<p>Approximates (K + nugget * I)^{-1} using random column sampling and the Woodbury identity.</p>
-<dl class="py method">
-<dt class="sig sig-object py" id="pcg_stein.precon.NystromWoodbury.__call__">
-<span class="sig-name descname"><span class="pre">__call__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">matrix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pcg_stein.precon.NystromWoodbury.__call__" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">__call__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">matrix</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pcg_stein.precon.Nystrom.__call__" title="Link to this definition">¶</a></dt>
 <dd><p>Construct the Nystrom preconditioner using the Woodbury Inverse.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>matrix</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></span>) – (n, n) symmetric matrix.</p></li>
-<li><p><strong>key</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></span>) – JAX random key.</p></li>
-<li><p><strong>m</strong> – int, required. Number of columns/rows for Nystrom approximation.</p></li>
-<li><p><strong>max_cond_number</strong> – float, optional. Max condition number for pseudoinverse (default 1e9).</p></li>
-<li><p><strong>indices</strong> – array or None, optional. Explicit indices for Nystrom subset.</p></li>
-<li><p><strong>nugget</strong> – float, required. Diagonal regularizer (added to K).</p></li>
+<li><p><strong>key</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></span>) – Array
+JAX random key for sampling indices, if not provided.</p></li>
+<li><p><strong>matrix</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></span>) – Array
+Input matrix (shape: [n, n]).</p></li>
+<li><p><strong>m</strong> – int, required.
+Number of columns/rows for Nystrom approximation.</p></li>
+<li><p><strong>max_cond_number</strong> – float, optional
+Maximum allowed condition number for pseudoinverse (default 1e14).</p></li>
+<li><p><strong>indices</strong> – array or None, optional.
+Explicit indices for Nystrom subset.</p></li>
+<li><p><strong>nugget</strong> – float, required.
+Diagonal regulariser in Woodbury inverse.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -1345,8 +1276,117 @@ Diagonal regularization parameter, added to the projected matrix.</p></li>
 </dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="pcg_stein.precon.NystromWoodbury.name">
-<span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'Nystrom'</span></em><a class="headerlink" href="#pcg_stein.precon.NystromWoodbury.name" title="Link to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="pcg_stein.precon.Nystrom.display_name">
+<span class="sig-name descname"><span class="pre">display_name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'Nystrom'</span></em><a class="headerlink" href="#pcg_stein.precon.Nystrom.display_name" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pcg_stein.precon.Nystrom.name">
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'Nystrom'</span></em><a class="headerlink" href="#pcg_stein.precon.Nystrom.name" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pcg_stein.precon.NystromDiagonal">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pcg_stein.precon.</span></span><span class="sig-name descname"><span class="pre">NystromDiagonal</span></span><a class="headerlink" href="#pcg_stein.precon.NystromDiagonal" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pcg_stein.precon.Preconditioner" title="pcg_stein.precon.Preconditioner"><code class="xref py py-class docutils literal notranslate"><span class="pre">Preconditioner</span></code></a></p>
+<p>Diagonally-weighted Random Index Nystrom preconditioner using the Woodbury formula.</p>
+<p>Approximates <span class="math notranslate nohighlight">\((K + \eta I)^{-1}\)</span> by sampling columns of <span class="math notranslate nohighlight">\(K\)</span> with probability proportional to their diagonal
+values, and then applies the Woodbury identity for an approximate inverse.</p>
+<p>This method differs from standard Nystrom by performing weighted (importance) column sampling.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="pcg_stein.precon.NystromDiagonal.__call__">
+<span class="sig-name descname"><span class="pre">__call__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">matrix</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pcg_stein.precon.NystromDiagonal.__call__" title="Link to this definition">¶</a></dt>
+<dd><p>Construct the diagonal-weighted Nystrom preconditioner using the Woodbury formula.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>key</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></span>) – Array
+Random key for reproducibility in random projection.</p></li>
+<li><p><strong>matrix</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></span>) – Array (n, n)
+Symmetric matrix to be preconditioned.</p></li>
+<li><p><strong>m</strong> – int, required in kwargs.
+Target rank - the number of columns/rows to sample for the Nystrom approximation.</p></li>
+<li><p><strong>max_cond_number</strong> – float, optional in kwargs.
+Maximum allowed condition number for pseudoinverse (default 1e14).</p></li>
+<li><p><strong>nugget</strong> – float, required in kwargs.
+Diagonal regulariser in Woodbury inverse.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>Array (n, n)</dt><dd><p>Approximate inverse <span class="math notranslate nohighlight">\((K + \eta I)^{-1}\)</span> constructed via weighted Nystrom sampling and Woodbury identity.</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>precon</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pcg_stein.precon.NystromDiagonal.display_name">
+<span class="sig-name descname"><span class="pre">display_name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'Nystrom</span> <span class="pre">(diagonal</span> <span class="pre">sampling)'</span></em><a class="headerlink" href="#pcg_stein.precon.NystromDiagonal.display_name" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pcg_stein.precon.NystromDiagonal.name">
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'NystromDiagonal'</span></em><a class="headerlink" href="#pcg_stein.precon.NystromDiagonal.name" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pcg_stein.precon.NystromRandom">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pcg_stein.precon.</span></span><span class="sig-name descname"><span class="pre">NystromRandom</span></span><a class="headerlink" href="#pcg_stein.precon.NystromRandom" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pcg_stein.precon.Preconditioner" title="pcg_stein.precon.Preconditioner"><code class="xref py py-class docutils literal notranslate"><span class="pre">Preconditioner</span></code></a></p>
+<p>Random Projection Nystrom preconditioner using the Woodbury formula.</p>
+<p>Approximates (K + nugget * I)^{-1} by projecting the n x n matrix K into an m-dimensional random subspace,
+and applying the Woodbury identity to the resulting low-rank matrix.</p>
+<p>This method differs from standard Nystrom by using a random Gaussian projection Ω (not random sampling of columns).</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="pcg_stein.precon.NystromRandom.__call__">
+<span class="sig-name descname"><span class="pre">__call__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">matrix</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pcg_stein.precon.NystromRandom.__call__" title="Link to this definition">¶</a></dt>
+<dd><p>Construct the random projection Nystrom preconditioner using the Woodbury formula.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>key</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></span>) – Array
+Random key for reproducibility in random projection.</p></li>
+<li><p><strong>matrix</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></span>) – Array (n, n)
+Symmetric matrix to be preconditioned.</p></li>
+<li><p><strong>m</strong> – int, required in kwargs
+Target dimension for the projection (rank of the approximation).</p></li>
+<li><p><strong>max_cond_number</strong> – float, optional
+Maximum allowed condition number for pseudoinverse (default 1e14).</p></li>
+<li><p><strong>nugget</strong> – float, required.
+Diagonal regulariser in Woodbury inverse.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>Array (n, n)</dt><dd><p>Approximate inverse (K + nugget * I)^{-1} constructed via random projection and the Woodbury identity.</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>precon</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pcg_stein.precon.NystromRandom.display_name">
+<span class="sig-name descname"><span class="pre">display_name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'Nystrom</span> <span class="pre">(random</span> <span class="pre">projection)'</span></em><a class="headerlink" href="#pcg_stein.precon.NystromRandom.display_name" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pcg_stein.precon.NystromRandom.name">
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'NystromRandom'</span></em><a class="headerlink" href="#pcg_stein.precon.NystromRandom.name" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -1366,10 +1406,10 @@ m x m is the size of the preconditioner or the number of columns in the low-rank
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>matrix</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></span>) – Array
-The matrix to precondition.</p></li>
 <li><p><strong>key</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></span>) – Array
 JAX random key, for any stochasticity required in the preconditioner.</p></li>
+<li><p><strong>matrix</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></span>) – Array
+The matrix to precondition.</p></li>
 <li><p><strong>return_mat_and_precon</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span>) – bool (default False)
 Whether to return both the approximated matrix and its preconditioner (approximate inverse).
 If True, the function returns a tuple <cite>(preconditioner, matrix_approx)</cite>; otherwise, only the preconditioner.</p></li>
@@ -1386,13 +1426,18 @@ If True, the function returns a tuple <cite>(preconditioner, matrix_approx)</cit
 </dd></dl>
 
 <dl class="py attribute">
+<dt class="sig sig-object py" id="pcg_stein.precon.Preconditioner.display_name">
+<span class="sig-name descname"><span class="pre">display_name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'base_precon'</span></em><a class="headerlink" href="#pcg_stein.precon.Preconditioner.display_name" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
 <dt class="sig sig-object py" id="pcg_stein.precon.Preconditioner.name">
 <span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'base_precon'</span></em><a class="headerlink" href="#pcg_stein.precon.Preconditioner.name" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pcg_stein.precon.Preconditioner.spectral_pinv">
-<span class="sig-name descname"><span class="pre">spectral_pinv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">matrix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_cond_number</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000000000.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pcg_stein.precon.Preconditioner.spectral_pinv" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">spectral_pinv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">matrix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_cond_number</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100000000000000.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pcg_stein.precon.Preconditioner.spectral_pinv" title="Link to this definition">¶</a></dt>
 <dd><p>Computes the Moore-Penrose pseudoinverse of a matrix, with optional spectral clipping.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -1402,7 +1447,7 @@ The matrix to invert (shape: [m, m]).</p></li>
 <li><p><strong>max_cond_number</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span>) – float, optional
 Maximum allowed condition number (largest/smallest singular value ratio).
 If provided, singular values smaller than s_max / max_cond_number are clipped
-for numerical stability. Default is 1e9.</p></li>
+for numerical stability. Default is 1e14.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -1456,27 +1501,27 @@ If None, sample indices randomly.</p></li>
 </dd></dl>
 
 <dl class="py class">
-<dt class="sig sig-object py" id="pcg_stein.precon.RandomisedSVDWoodbury">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pcg_stein.precon.</span></span><span class="sig-name descname"><span class="pre">RandomisedSVDWoodbury</span></span><a class="headerlink" href="#pcg_stein.precon.RandomisedSVDWoodbury" title="Link to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="pcg_stein.precon.RandomisedSVD">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pcg_stein.precon.</span></span><span class="sig-name descname"><span class="pre">RandomisedSVD</span></span><a class="headerlink" href="#pcg_stein.precon.RandomisedSVD" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pcg_stein.precon.Preconditioner" title="pcg_stein.precon.Preconditioner"><code class="xref py py-class docutils literal notranslate"><span class="pre">Preconditioner</span></code></a></p>
 <p>Computes a low-rank Woodbury inverse preconditioner using Randomized SVD with power iterations.</p>
-<p>This approximates (K + nugget * I)^{-1} via a randomized SVD to get the dominant subspace,
+<p>This approximates <span class="math notranslate nohighlight">\((K + \eta I)^{-1}\)</span> via a randomized SVD to get the dominant subspace,
 and then applies the Woodbury formula for efficient approximate inversion. Assumes K is symmetric or PSD.</p>
 <dl class="py method">
-<dt class="sig sig-object py" id="pcg_stein.precon.RandomisedSVDWoodbury.__call__">
-<span class="sig-name descname"><span class="pre">__call__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">matrix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pcg_stein.precon.RandomisedSVDWoodbury.__call__" title="Link to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="pcg_stein.precon.RandomisedSVD.__call__">
+<span class="sig-name descname"><span class="pre">__call__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">matrix</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pcg_stein.precon.RandomisedSVD.__call__" title="Link to this definition">¶</a></dt>
 <dd><p>Construct a randomized SVD-based Woodbury preconditioner.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
+<li><p><strong>key</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></span>) – Array
+Random key for reproducibility in random projection.</p></li>
 <li><p><strong>matrix</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></span>) – Array (n, n)
 Symmetric matrix to be preconditioned.</p></li>
-<li><p><strong>key</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></span>) – Array
-Random key for projection.</p></li>
 <li><p><strong>m</strong> – int, required in kwargs
 Target rank of the approximation.</p></li>
-<li><p><strong>nugget</strong> – float, required in kwargs
-Diagonal regularization parameter, added to K.</p></li>
+<li><p><strong>nugget</strong> – float, required in kwargs.
+Diagonal regulariser in Woodbury inverse.</p></li>
 <li><p><strong>return_mat_and_precon</strong> – bool (default False)
 Whether to return both the approximated matrix and its preconditioner (approximate inverse).
 If True, the function returns a tuple <cite>(preconditioner, matrix_approx)</cite>; otherwise, only the preconditioner.</p></li>
@@ -1498,15 +1543,175 @@ Maximum allowed condition number for pseudoinverse (default 1e14).</p></li>
 </dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="pcg_stein.precon.RandomisedSVDWoodbury.name">
-<span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'Randomised</span> <span class="pre">SVD'</span></em><a class="headerlink" href="#pcg_stein.precon.RandomisedSVDWoodbury.name" title="Link to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="pcg_stein.precon.RandomisedSVD.display_name">
+<span class="sig-name descname"><span class="pre">display_name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'Randomised</span> <span class="pre">SVD'</span></em><a class="headerlink" href="#pcg_stein.precon.RandomisedSVD.display_name" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pcg_stein.precon.RandomisedSVD.name">
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'RandomisedSVD'</span></em><a class="headerlink" href="#pcg_stein.precon.RandomisedSVD.name" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 </section>
-<section id="pcg-stein-util-module">
-<h2>pcg_stein.util module<a class="headerlink" href="#pcg-stein-util-module" title="Link to this heading">¶</a></h2>
+<section id="module-pcg_stein.registry">
+<span id="pcg-stein-registry-module"></span><h2>pcg_stein.registry module<a class="headerlink" href="#module-pcg_stein.registry" title="Link to this heading">¶</a></h2>
+</section>
+<section id="module-pcg_stein.util">
+<span id="pcg-stein-util-module"></span><h2>pcg_stein.util module<a class="headerlink" href="#module-pcg_stein.util" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="pcg_stein.util.PCG_Experiment">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pcg_stein.util.</span></span><span class="sig-name descname"><span class="pre">PCG_Experiment</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dist</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dist_sample</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kernel</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">preconditioners</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pcg_stein.util.PCG_Experiment" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dist</strong> (<a class="reference internal" href="#pcg_stein.distribution.Distribution" title="pcg_stein.distribution.Distribution"><em>Distribution</em></a>)</p></li>
+<li><p><strong>dist_sample</strong> (<em>Array</em>)</p></li>
+<li><p><strong>kernel</strong> (<a class="reference internal" href="#pcg_stein.kernel.Kernel" title="pcg_stein.kernel.Kernel"><em>Kernel</em></a>)</p></li>
+<li><p><strong>preconditioners</strong> (<em>list</em><em>[</em><a class="reference internal" href="#pcg_stein.precon.Preconditioner" title="pcg_stein.precon.Preconditioner"><em>Preconditioner</em></a><em>]</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pcg_stein.util.PCG_Experiment.__call__">
+<span class="sig-name descname"><span class="pre">__call__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">precon_key</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">wce_mul</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxiter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kernel_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">precon_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debug_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pcg_stein.util.PCG_Experiment.__call__" title="Link to this definition">¶</a></dt>
+<dd><p>Runs a PCG experiment. Compares the close</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>precon_key</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Array</span></code></span>) – Array
+Used in random preconditioners.</p></li>
+<li><p><strong>wce_mul</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span>) – float
+The number multiplied by the reference worst-case error to act as termination criterion.</p></li>
+<li><p><strong>max_iter</strong> – int, optional
+Maximum number of iterations of PCG to perform before failure</p></li>
+<li><p><strong>kernel_kwargs</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – dict, optional
+Extra args forwarded only to kernel.stein_matrix().</p></li>
+<li><p><strong>precon_kwargs</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – dict, optional
+Extra args forwarded only to each preconditioner.</p></li>
+<li><p><strong>maxiter</strong> (<em>int</em>)</p></li>
+<li><p><strong>debug_mode</strong> (<em>bool</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A dictionary of gains for each preconditioner. The gain is defined as log(1 + m_CG) - log(1 + m_PCG),
+where m_CG/m_PCG are the number of iterations of CG/PCG required for
+the the worst-case error termination criterion to be fulfilled.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcg_stein.util.PCG_Experiment.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dist</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dist_sample</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kernel</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">preconditioners</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pcg_stein.util.PCG_Experiment.__init__" title="Link to this definition">¶</a></dt>
+<dd><p>Initialises the PCG experiment with the target distribution, sample data, kernel, and preconditioners.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dist</strong> (<a class="reference internal" href="#pcg_stein.distribution.Distribution" title="pcg_stein.distribution.Distribution"><em>Distribution</em></a>) – The target distribution defining the log density and score function.</p></li>
+<li><p><strong>dist_sample</strong> (<em>Array</em>) – A set of samples drawn from the target distribution.</p></li>
+<li><p><strong>kernel</strong> (<a class="reference internal" href="#pcg_stein.kernel.Kernel" title="pcg_stein.kernel.Kernel"><em>Kernel</em></a>) – A positive-definite kernel function used to construct the Stein kernel matrix.</p></li>
+<li><p><strong>preconditioners</strong> (<em>list</em><em>[</em><a class="reference internal" href="#pcg_stein.precon.Preconditioner" title="pcg_stein.precon.Preconditioner"><em>Preconditioner</em></a><em>]</em>) – A list of preconditioners to be applied.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcg_stein.util.PCG_Experiment._stein_matrix">
+<span class="sig-name descname"><span class="pre">_stein_matrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kernel_kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pcg_stein.util.PCG_Experiment._stein_matrix" title="Link to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>kernel_kwargs</strong> (<em>Any</em>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcg_stein.util.PCG_Experiment.check_failure_conditions">
+<span class="sig-name descname"><span class="pre">check_failure_conditions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pcg_output</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">precon</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">precon_mat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">precon_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxiter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wce_tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kernel_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">precon_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pcg_stein.util.PCG_Experiment.check_failure_conditions" title="Link to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pcg_output</strong> (<em>tuple</em><em>[</em><em>Array</em><em>, </em><em>...</em><em>]</em>)</p></li>
+<li><p><strong>precon</strong> (<a class="reference internal" href="#pcg_stein.precon.Preconditioner" title="pcg_stein.precon.Preconditioner"><em>Preconditioner</em></a><em> | </em><em>None</em>)</p></li>
+<li><p><strong>precon_mat</strong> (<em>Array</em><em> | </em><em>None</em>)</p></li>
+<li><p><strong>precon_key</strong> (<em>Array</em><em> | </em><em>None</em>)</p></li>
+<li><p><strong>maxiter</strong> (<em>int</em>)</p></li>
+<li><p><strong>wce_tol</strong> (<em>float</em><em> | </em><em>None</em>)</p></li>
+<li><p><strong>kernel_kwargs</strong> (<em>dict</em><em> | </em><em>None</em>)</p></li>
+<li><p><strong>precon_kwargs</strong> (<em>dict</em><em> | </em><em>None</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pcg_stein.util.PCG_Experiment.set_reference_wce">
+<span class="sig-name descname"><span class="pre">set_reference_wce</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">wce</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxiter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10000</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">hyper</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pcg_stein.util.PCG_Experiment.set_reference_wce" title="Link to this definition">¶</a></dt>
+<dd><p>Sets reference worst-case error to be used as termination criterion in PCG for the experiment.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>wce</strong> (<em>float</em><em> | </em><em>None</em>)</p></li>
+<li><p><strong>maxiter</strong> (<em>int</em>)</p></li>
+<li><p><strong>hyper</strong> (<em>Any</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pcg_stein.util.est_err">
+<span class="sig-prename descclassname"><span class="pre">pcg_stein.util.</span></span><span class="sig-name descname"><span class="pre">est_err</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">w</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">K</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pcg_stein.util.est_err" title="Link to this definition">¶</a></dt>
+<dd><p>Worst-case error of Stein integration.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pcg_stein.util.plot_heatmap_data">
+<span class="sig-prename descclassname"><span class="pre">pcg_stein.util.</span></span><span class="sig-name descname"><span class="pre">plot_heatmap_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">all_heatmap_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">preconditioners</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid_shape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(3,</span> <span class="pre">3)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(12,</span> <span class="pre">10)</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pcg_stein.util.plot_heatmap_data" title="Link to this definition">¶</a></dt>
+<dd><p>Plots heatmaps for each preconditioner using averaged data and standard errors.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>all_heatmap_data</strong> – <p>dict
+A dictionary containing keys ‘data’, ‘xticklabels’, and ‘yticklabels’.
+- all_heatmap_data[‘data’] should be a dict mapping each preconditioner name</p>
+<blockquote>
+<div><p>to an array-like of shape (num_experiments, …), where the remaining dimensions
+form the heatmap.</p>
+</div></blockquote>
+<ul>
+<li><p>Similarly, ‘xticklabels’ and ‘yticklabels’ should contain labels for each preconditioner.</p></li>
+</ul>
+</p></li>
+<li><p><strong>preconditioners</strong> – list of str, optional
+List of preconditioner names to plot. If None, a default list is used.</p></li>
+<li><p><strong>grid_shape</strong> – tuple of int, optional
+The (rows, columns) of the subplot grid.</p></li>
+<li><p><strong>figsize</strong> – tuple of int, optional
+Size of the overall figure.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>matplotlib.figure.Figure</dt><dd><p>The generated figure.</p>
+</dd>
+<dt>axes<span class="classifier">array of Axes</span></dt><dd><p>The axes array.</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>fig</p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 <section id="module-pcg_stein">
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-pcg_stein" title="Link to this heading">¶</a></h2>
@@ -1590,12 +1795,16 @@ Maximum allowed condition number for pseudoinverse (default 1e14).</p></li>
 <li><a class="reference internal" href="#pcg_stein.kernel.GaussianKernel._phi"><code class="docutils literal notranslate"><span class="pre">GaussianKernel._phi()</span></code></a></li>
 <li><a class="reference internal" href="#pcg_stein.kernel.GaussianKernel._phi_pp"><code class="docutils literal notranslate"><span class="pre">GaussianKernel._phi_pp()</span></code></a></li>
 <li><a class="reference internal" href="#pcg_stein.kernel.GaussianKernel._psi"><code class="docutils literal notranslate"><span class="pre">GaussianKernel._psi()</span></code></a></li>
+<li><a class="reference internal" href="#pcg_stein.kernel.GaussianKernel.display_name"><code class="docutils literal notranslate"><span class="pre">GaussianKernel.display_name</span></code></a></li>
+<li><a class="reference internal" href="#pcg_stein.kernel.GaussianKernel.name"><code class="docutils literal notranslate"><span class="pre">GaussianKernel.name</span></code></a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#pcg_stein.kernel.IMQKernel"><code class="docutils literal notranslate"><span class="pre">IMQKernel</span></code></a><ul>
 <li><a class="reference internal" href="#pcg_stein.kernel.IMQKernel._phi"><code class="docutils literal notranslate"><span class="pre">IMQKernel._phi()</span></code></a></li>
 <li><a class="reference internal" href="#pcg_stein.kernel.IMQKernel._phi_pp"><code class="docutils literal notranslate"><span class="pre">IMQKernel._phi_pp()</span></code></a></li>
 <li><a class="reference internal" href="#pcg_stein.kernel.IMQKernel._psi"><code class="docutils literal notranslate"><span class="pre">IMQKernel._psi()</span></code></a></li>
+<li><a class="reference internal" href="#pcg_stein.kernel.IMQKernel.display_name"><code class="docutils literal notranslate"><span class="pre">IMQKernel.display_name</span></code></a></li>
+<li><a class="reference internal" href="#pcg_stein.kernel.IMQKernel.name"><code class="docutils literal notranslate"><span class="pre">IMQKernel.name</span></code></a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#pcg_stein.kernel.Kernel"><code class="docutils literal notranslate"><span class="pre">Kernel</span></code></a><ul>
@@ -1605,6 +1814,7 @@ Maximum allowed condition number for pseudoinverse (default 1e14).</p></li>
 <li><a class="reference internal" href="#pcg_stein.kernel.Kernel._phi_pp"><code class="docutils literal notranslate"><span class="pre">Kernel._phi_pp()</span></code></a></li>
 <li><a class="reference internal" href="#pcg_stein.kernel.Kernel._psi"><code class="docutils literal notranslate"><span class="pre">Kernel._psi()</span></code></a></li>
 <li><a class="reference internal" href="#pcg_stein.kernel.Kernel._stein_pair"><code class="docutils literal notranslate"><span class="pre">Kernel._stein_pair()</span></code></a></li>
+<li><a class="reference internal" href="#pcg_stein.kernel.Kernel.name"><code class="docutils literal notranslate"><span class="pre">Kernel.name</span></code></a></li>
 <li><a class="reference internal" href="#pcg_stein.kernel.Kernel.stein_matrix"><code class="docutils literal notranslate"><span class="pre">Kernel.stein_matrix()</span></code></a></li>
 </ul>
 </li>
@@ -1612,12 +1822,16 @@ Maximum allowed condition number for pseudoinverse (default 1e14).</p></li>
 <li><a class="reference internal" href="#pcg_stein.kernel.Matern52Kernel._phi"><code class="docutils literal notranslate"><span class="pre">Matern52Kernel._phi()</span></code></a></li>
 <li><a class="reference internal" href="#pcg_stein.kernel.Matern52Kernel._phi_pp"><code class="docutils literal notranslate"><span class="pre">Matern52Kernel._phi_pp()</span></code></a></li>
 <li><a class="reference internal" href="#pcg_stein.kernel.Matern52Kernel._psi"><code class="docutils literal notranslate"><span class="pre">Matern52Kernel._psi()</span></code></a></li>
+<li><a class="reference internal" href="#pcg_stein.kernel.Matern52Kernel.display_name"><code class="docutils literal notranslate"><span class="pre">Matern52Kernel.display_name</span></code></a></li>
+<li><a class="reference internal" href="#pcg_stein.kernel.Matern52Kernel.name"><code class="docutils literal notranslate"><span class="pre">Matern52Kernel.name</span></code></a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#pcg_stein.kernel.Matern72Kernel"><code class="docutils literal notranslate"><span class="pre">Matern72Kernel</span></code></a><ul>
 <li><a class="reference internal" href="#pcg_stein.kernel.Matern72Kernel._phi"><code class="docutils literal notranslate"><span class="pre">Matern72Kernel._phi()</span></code></a></li>
 <li><a class="reference internal" href="#pcg_stein.kernel.Matern72Kernel._phi_pp"><code class="docutils literal notranslate"><span class="pre">Matern72Kernel._phi_pp()</span></code></a></li>
 <li><a class="reference internal" href="#pcg_stein.kernel.Matern72Kernel._psi"><code class="docutils literal notranslate"><span class="pre">Matern72Kernel._psi()</span></code></a></li>
+<li><a class="reference internal" href="#pcg_stein.kernel.Matern72Kernel.display_name"><code class="docutils literal notranslate"><span class="pre">Matern72Kernel.display_name</span></code></a></li>
+<li><a class="reference internal" href="#pcg_stein.kernel.Matern72Kernel.name"><code class="docutils literal notranslate"><span class="pre">Matern72Kernel.name</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -1630,49 +1844,64 @@ Maximum allowed condition number for pseudoinverse (default 1e14).</p></li>
 <li><a class="reference internal" href="#module-pcg_stein.precon">pcg_stein.precon module</a><ul>
 <li><a class="reference internal" href="#pcg_stein.precon.BlockJacobi"><code class="docutils literal notranslate"><span class="pre">BlockJacobi</span></code></a><ul>
 <li><a class="reference internal" href="#pcg_stein.precon.BlockJacobi.__call__"><code class="docutils literal notranslate"><span class="pre">BlockJacobi.__call__()</span></code></a></li>
+<li><a class="reference internal" href="#pcg_stein.precon.BlockJacobi.display_name"><code class="docutils literal notranslate"><span class="pre">BlockJacobi.display_name</span></code></a></li>
 <li><a class="reference internal" href="#pcg_stein.precon.BlockJacobi.name"><code class="docutils literal notranslate"><span class="pre">BlockJacobi.name</span></code></a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#pcg_stein.precon.FITC"><code class="docutils literal notranslate"><span class="pre">FITC</span></code></a><ul>
 <li><a class="reference internal" href="#pcg_stein.precon.FITC.__call__"><code class="docutils literal notranslate"><span class="pre">FITC.__call__()</span></code></a></li>
+<li><a class="reference internal" href="#pcg_stein.precon.FITC.display_name"><code class="docutils literal notranslate"><span class="pre">FITC.display_name</span></code></a></li>
 <li><a class="reference internal" href="#pcg_stein.precon.FITC.name"><code class="docutils literal notranslate"><span class="pre">FITC.name</span></code></a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#pcg_stein.precon.Nystrom"><code class="docutils literal notranslate"><span class="pre">Nystrom</span></code></a><ul>
 <li><a class="reference internal" href="#pcg_stein.precon.Nystrom.__call__"><code class="docutils literal notranslate"><span class="pre">Nystrom.__call__()</span></code></a></li>
+<li><a class="reference internal" href="#pcg_stein.precon.Nystrom.display_name"><code class="docutils literal notranslate"><span class="pre">Nystrom.display_name</span></code></a></li>
 <li><a class="reference internal" href="#pcg_stein.precon.Nystrom.name"><code class="docutils literal notranslate"><span class="pre">Nystrom.name</span></code></a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#pcg_stein.precon.NystromRandomDiagonalWoodbury"><code class="docutils literal notranslate"><span class="pre">NystromRandomDiagonalWoodbury</span></code></a><ul>
-<li><a class="reference internal" href="#pcg_stein.precon.NystromRandomDiagonalWoodbury.__call__"><code class="docutils literal notranslate"><span class="pre">NystromRandomDiagonalWoodbury.__call__()</span></code></a></li>
-<li><a class="reference internal" href="#pcg_stein.precon.NystromRandomDiagonalWoodbury.name"><code class="docutils literal notranslate"><span class="pre">NystromRandomDiagonalWoodbury.name</span></code></a></li>
+<li><a class="reference internal" href="#pcg_stein.precon.NystromDiagonal"><code class="docutils literal notranslate"><span class="pre">NystromDiagonal</span></code></a><ul>
+<li><a class="reference internal" href="#pcg_stein.precon.NystromDiagonal.__call__"><code class="docutils literal notranslate"><span class="pre">NystromDiagonal.__call__()</span></code></a></li>
+<li><a class="reference internal" href="#pcg_stein.precon.NystromDiagonal.display_name"><code class="docutils literal notranslate"><span class="pre">NystromDiagonal.display_name</span></code></a></li>
+<li><a class="reference internal" href="#pcg_stein.precon.NystromDiagonal.name"><code class="docutils literal notranslate"><span class="pre">NystromDiagonal.name</span></code></a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#pcg_stein.precon.NystromRandomWoodbury"><code class="docutils literal notranslate"><span class="pre">NystromRandomWoodbury</span></code></a><ul>
-<li><a class="reference internal" href="#pcg_stein.precon.NystromRandomWoodbury.__call__"><code class="docutils literal notranslate"><span class="pre">NystromRandomWoodbury.__call__()</span></code></a></li>
-<li><a class="reference internal" href="#pcg_stein.precon.NystromRandomWoodbury.name"><code class="docutils literal notranslate"><span class="pre">NystromRandomWoodbury.name</span></code></a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#pcg_stein.precon.NystromWoodbury"><code class="docutils literal notranslate"><span class="pre">NystromWoodbury</span></code></a><ul>
-<li><a class="reference internal" href="#pcg_stein.precon.NystromWoodbury.__call__"><code class="docutils literal notranslate"><span class="pre">NystromWoodbury.__call__()</span></code></a></li>
-<li><a class="reference internal" href="#pcg_stein.precon.NystromWoodbury.name"><code class="docutils literal notranslate"><span class="pre">NystromWoodbury.name</span></code></a></li>
+<li><a class="reference internal" href="#pcg_stein.precon.NystromRandom"><code class="docutils literal notranslate"><span class="pre">NystromRandom</span></code></a><ul>
+<li><a class="reference internal" href="#pcg_stein.precon.NystromRandom.__call__"><code class="docutils literal notranslate"><span class="pre">NystromRandom.__call__()</span></code></a></li>
+<li><a class="reference internal" href="#pcg_stein.precon.NystromRandom.display_name"><code class="docutils literal notranslate"><span class="pre">NystromRandom.display_name</span></code></a></li>
+<li><a class="reference internal" href="#pcg_stein.precon.NystromRandom.name"><code class="docutils literal notranslate"><span class="pre">NystromRandom.name</span></code></a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#pcg_stein.precon.Preconditioner"><code class="docutils literal notranslate"><span class="pre">Preconditioner</span></code></a><ul>
 <li><a class="reference internal" href="#pcg_stein.precon.Preconditioner.__call__"><code class="docutils literal notranslate"><span class="pre">Preconditioner.__call__()</span></code></a></li>
+<li><a class="reference internal" href="#pcg_stein.precon.Preconditioner.display_name"><code class="docutils literal notranslate"><span class="pre">Preconditioner.display_name</span></code></a></li>
 <li><a class="reference internal" href="#pcg_stein.precon.Preconditioner.name"><code class="docutils literal notranslate"><span class="pre">Preconditioner.name</span></code></a></li>
 <li><a class="reference internal" href="#pcg_stein.precon.Preconditioner.spectral_pinv"><code class="docutils literal notranslate"><span class="pre">Preconditioner.spectral_pinv()</span></code></a></li>
 <li><a class="reference internal" href="#pcg_stein.precon.Preconditioner.sub_matrix"><code class="docutils literal notranslate"><span class="pre">Preconditioner.sub_matrix()</span></code></a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#pcg_stein.precon.RandomisedSVDWoodbury"><code class="docutils literal notranslate"><span class="pre">RandomisedSVDWoodbury</span></code></a><ul>
-<li><a class="reference internal" href="#pcg_stein.precon.RandomisedSVDWoodbury.__call__"><code class="docutils literal notranslate"><span class="pre">RandomisedSVDWoodbury.__call__()</span></code></a></li>
-<li><a class="reference internal" href="#pcg_stein.precon.RandomisedSVDWoodbury.name"><code class="docutils literal notranslate"><span class="pre">RandomisedSVDWoodbury.name</span></code></a></li>
+<li><a class="reference internal" href="#pcg_stein.precon.RandomisedSVD"><code class="docutils literal notranslate"><span class="pre">RandomisedSVD</span></code></a><ul>
+<li><a class="reference internal" href="#pcg_stein.precon.RandomisedSVD.__call__"><code class="docutils literal notranslate"><span class="pre">RandomisedSVD.__call__()</span></code></a></li>
+<li><a class="reference internal" href="#pcg_stein.precon.RandomisedSVD.display_name"><code class="docutils literal notranslate"><span class="pre">RandomisedSVD.display_name</span></code></a></li>
+<li><a class="reference internal" href="#pcg_stein.precon.RandomisedSVD.name"><code class="docutils literal notranslate"><span class="pre">RandomisedSVD.name</span></code></a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li><a class="reference internal" href="#pcg-stein-util-module">pcg_stein.util module</a></li>
+<li><a class="reference internal" href="#module-pcg_stein.registry">pcg_stein.registry module</a></li>
+<li><a class="reference internal" href="#module-pcg_stein.util">pcg_stein.util module</a><ul>
+<li><a class="reference internal" href="#pcg_stein.util.PCG_Experiment"><code class="docutils literal notranslate"><span class="pre">PCG_Experiment</span></code></a><ul>
+<li><a class="reference internal" href="#pcg_stein.util.PCG_Experiment.__call__"><code class="docutils literal notranslate"><span class="pre">PCG_Experiment.__call__()</span></code></a></li>
+<li><a class="reference internal" href="#pcg_stein.util.PCG_Experiment.__init__"><code class="docutils literal notranslate"><span class="pre">PCG_Experiment.__init__()</span></code></a></li>
+<li><a class="reference internal" href="#pcg_stein.util.PCG_Experiment._stein_matrix"><code class="docutils literal notranslate"><span class="pre">PCG_Experiment._stein_matrix()</span></code></a></li>
+<li><a class="reference internal" href="#pcg_stein.util.PCG_Experiment.check_failure_conditions"><code class="docutils literal notranslate"><span class="pre">PCG_Experiment.check_failure_conditions()</span></code></a></li>
+<li><a class="reference internal" href="#pcg_stein.util.PCG_Experiment.set_reference_wce"><code class="docutils literal notranslate"><span class="pre">PCG_Experiment.set_reference_wce()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#pcg_stein.util.est_err"><code class="docutils literal notranslate"><span class="pre">est_err()</span></code></a></li>
+<li><a class="reference internal" href="#pcg_stein.util.plot_heatmap_data"><code class="docutils literal notranslate"><span class="pre">plot_heatmap_data()</span></code></a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#module-pcg_stein">Module contents</a></li>
 </ul>
 </li>
