@@ -6,6 +6,8 @@ $$ K x = y, $$
 
 where $K$ is a symmetric PSD gram matrix produced by a Stein kernel.
 
+[![Docs](https://img.shields.io/badge/docs-pcg--stein-blue)](https://matthewalexanderfisher.github.io/pcg-stein)
+
 
 ---
 
@@ -29,7 +31,7 @@ An issue with performing automatic differentiation to compute the divergence and
 To address this, we restrict our implementation to Langevin stein kernels for isotropic base kernels $k$, where the first and second derivatives are provided with the singularity removed. An *isotropic* kernel is a kernel $k:\mathbb{R}^d\times \mathbb{R}^d \rightarrow \mathbb{R}$ of the form
 
 $$
-k(x,y)=\varphi\bigl(r\bigr) \qquad r = \|x - y\|.  
+k(x,y)=\varphi\bigl(r\bigr) \qquad r = \lVert x-y\rVert.  
 $$
 
 We can compute its gradient and divergence in closed form:
@@ -44,7 +46,7 @@ We can compute its gradient and divergence in closed form:
    Then by the chain‐rule
 
    $$
-     \nabla_x\,k(x,y)= \varphi'(r)\,\nabla_x r = \varphi'(r) \frac{x - y}{\|x - y\|}.
+     \nabla_x\,k(x,y)= \varphi'(r)\,\nabla_x r = \varphi'(r) \frac{x - y}{\lVert x-y\rVert}.
    $$
 
    Similarly $\nabla_y k(x,y) = -\nabla_x k(x,y)$.
