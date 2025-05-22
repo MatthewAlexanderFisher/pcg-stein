@@ -34,7 +34,7 @@ $$
 
 We can compute its gradient and divergence in closed form:
 
-##### The gradients $\nabla_x k(x,y)$ and $\nabla_y k(x,y)$:
+#### The gradients $\nabla_x k(x,y)$ and $\nabla_y k(x,y)$
    Let
 
    $$
@@ -49,7 +49,7 @@ We can compute its gradient and divergence in closed form:
 
    Similarly $\nabla_y k(x,y) = -\nabla_x k(x,y)$.
 
-##### The mixed divergence $\nabla_x\cdot\nabla_y\,k(x,y)$:
+#### The mixed divergence $\nabla_x\cdot\nabla_y k(x,y)$
    We seek
 
    $$
@@ -96,10 +96,11 @@ $$
 
 To implement a Stein kernel we need, besides $\varphi$ itself, its first
 derivative divided by $r$ (to remove the singularity) and its second derivative:
+
 $$
-\psi(r) := \frac{\varphi'(r)}{r}=\frac{1}{r}\frac{\partial\varphi}{\partial r},\qquad
-\varphi''(r)=\frac{\partial^{2}\varphi}{\partial r^{2}}.
+\psi(r) := \frac{\varphi'(r)}{r}=\frac{1}{r}\frac{\partial\varphi}{\partial r},\qquad \varphi''(r)=\frac{\partial^{2}\varphi}{\partial r^{2}}.
 $$
+
 Each kernel class provides internal scalar-valued radial functions, used in batched Stein computations:
 
 ```python
@@ -116,9 +117,7 @@ Here, `hyper` are the hyperparameter keyword arguments. All kernels **always** a
 For an isotropic base kernel $k$, the lengthscale and amplitude are defined as follows:
 
 $$
-k(x,y;\,\ell,\sigma^{2}) \;=\;
-\sigma^{2}\,\varphi\!\bigl(r/\ell\bigr),\qquad
-r=\lVert x-y\rVert.
+k(x,y; \ell,\sigma^{2}) = \sigma^{2} \varphi \bigl(r/\ell\bigr),\qquad r=\lVert x-y\rVert.
 $$
 
 The following kernels are currently implemented:
@@ -133,13 +132,13 @@ The following kernels are currently implemented:
 
 ---
 
-#### Matérn–$5/2$ kernel (`Matern52Kernel`)
+#### Matérn–5/2 kernel (`Matern52Kernel`)
 
 The Matérn family is indexed by the smoothness parameter $\nu$.
 For $\nu=\tfrac52$ the profile is
 
 $$
-\varphi(r) = \sigma^{2}\Bigl( 1 + c r + \tfrac{c^{2}}{3}\,r^{2} \Bigr)\,e^{-c r},
+\varphi(r) = \sigma^{2}\Bigl( 1 + c r + \tfrac{c^{2}}{3}\,r^{2} \Bigr) e^{-c r},
 \quad
 c=\frac{\sqrt5}{\ell}, \quad  r=\lVert x-y\rVert .
 $$
@@ -147,9 +146,9 @@ Thus, the required terms are:
 $$
 \boxed{
 \begin{aligned}
-\varphi(r)   &= \sigma^{2}\Bigl(1 + c r + \tfrac{c^{2}}{3}r^{2}\Bigr)\,e^{-c r}, \\
-\psi(r) = \frac{\varphi'(r)}{r}  &= -\,\sigma^{2}\,\frac{c^{2}}{3}\Bigl(1 + c r\Bigr)\,e^{-c r}, \\
-\varphi''(r) &= -\,\sigma^{2}\,\frac{c^{2}}{3}\Bigl(1 + c r - c^{2} r^{2}\Bigr)\,e^{-c r}.
+\varphi(r)   &= \sigma^{2}\Bigl(1 + c r + \tfrac{c^{2}}{3}r^{2}\Bigr) e^{-c r}, \\
+\psi(r) = \frac{\varphi'(r)}{r}  &= - \sigma^{2}\,\frac{c^{2}}{3}\Bigl(1 + c r\Bigr) e^{-c r}, \\
+\varphi''(r) &= - \sigma^{2} \frac{c^{2}}{3}\Bigl(1 + c r - c^{2} r^{2}\Bigr) e^{-c r}.
 \end{aligned}
 }
 $$
@@ -157,13 +156,13 @@ $$
 
 ---
 
-#### Matérn–$7/2$ kernel (`Matern72Kernel`)
+#### Matérn–7/2 kernel (`Matern72Kernel`)
 
 For the smoothness parameter $\nu=\tfrac72$ the Matérn profile contains a degree-3 polynomial:
 
 $$
 \varphi(r)
-=\sigma^2 \Bigl(1+c r+\tfrac{c^{2}}{3}r^{2}+\tfrac{c^{3}}{15}r^{3}\Bigr)\,e^{-c r},
+=\sigma^2 \Bigl(1+c r+\tfrac{c^{2}}{3}r^{2}+\tfrac{c^{3}}{15}r^{3}\Bigr) e^{-c r},
 \quad
 c=\frac{\sqrt7}{\ell}, \quad  r=\lVert x-y\rVert .
 $$
@@ -174,13 +173,13 @@ $$
 \boxed{
 \begin{aligned}
 \varphi(r)
-  &=\sigma^{2}\Bigl(1+c r+\tfrac{c^{2}}{3}r^{2}+\tfrac{c^{3}}{15}r^{3}\Bigr)e^{-c r}, \\
+  &=\sigma^{2}\Bigl(1 + c r + \tfrac{c^{2}}{3}r^{2}+\tfrac{c^{3}}{15}r^{3}\Bigr)e^{-c r}, \\
 \psi(r) = \frac{\varphi'(r)}{r}
-  &=-\,\frac{\sigma^{2}c^{2}}{15}\,
-      \Bigl(5+2c r+c^{2}r^{2}\Bigr)\,e^{-c r}, \\
+  &=-\frac{\sigma^{2}c^{2}}{15}
+      \Bigl(5+2c r+c^{2}r^{2}\Bigr)e^{-c r}, \\
 \varphi''(r)
-  &=\;\frac{\sigma^{2}c^{2}}{15}\,
-      \Bigl(-5+c r-c^{2}r^{2}+c^{3}r^{3}\Bigr)\,e^{-c r}.
+  &=\frac{\sigma^{2}c^{2}}{15}
+      \Bigl(-5+c r-c^{2}r^{2}+c^{3}r^{3}\Bigr)e^{-c r}.
 \end{aligned}}
 $$
 
@@ -192,7 +191,7 @@ The profile for the Gaussian kernel takes the form:
 
 $$
 \varphi(r)
-=\sigma^2 \exp\left(-\frac{r^2}{2\ell^2}\right), \quad r=\|x-y\|.
+=\sigma^2 \exp\left(-\frac{r^2}{2\ell^2}\right), \quad r=||x-y||.
 $$
 
 Thus, the required terms are:
@@ -237,12 +236,12 @@ $$
 \varphi(r)
 &=\sigma^{2}\,u(r)^{-\beta}, \\
 \psi(r) = \frac{\varphi'(r)}{r}
-&=-\,\frac{2\beta\sigma^{2}}{\ell^{2}}\;u(r)^{-(\beta+1)}, \\
+&=- \frac{2\beta\sigma^{2}}{\ell^{2}} u(r)^{-(\beta+1)}, \\
 \varphi''(r)
 &=\sigma^{2}\,u(r)^{-(\beta+2)}
-  \Bigl[\,
+  \Bigl[
      -\frac{2\beta}{\ell^{2}}\,u(r)
-     \;+\;
+     +
      \frac{4\beta(\beta+1)\,r^{2}}{\ell^{4}}
   \Bigr].
 \end{aligned}}
