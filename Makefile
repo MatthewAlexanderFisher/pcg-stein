@@ -1,4 +1,4 @@
-# This Makefile is used to manage the installation and development of the tradekit project.
+# This Makefile is used to manage the installation and development of the pcg-stein package.
 .PHONY: \
 	install install-e install-dev-e install-docs-e install-all-e \
 	docs-html docs-serve docs-open docs-all docs-make
@@ -21,7 +21,7 @@ install-e:
 
 # Format code using Black
 format:
-	black src/
+	black src/ experiments/
 
 # Build HTML documentation
 docs-html:
@@ -35,7 +35,7 @@ docs-make:
 docs-serve:
 	python -m http.server --directory docs/_build/html 8000
 
-# Build and open docs in browser (Linux/macOS/Windows cross-platform)
+# Build and open docs in browser 
 docs-open: docs-html
 	python -m webbrowser http://localhost:8000
 

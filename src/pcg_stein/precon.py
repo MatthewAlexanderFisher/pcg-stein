@@ -1,6 +1,7 @@
 import jax, jax.numpy as jnp
-from jax import Array
+from jax import Array, lax
 from typing import Optional, Tuple, Any
+from functools import partial
 
 
 class Preconditioner:
@@ -11,8 +12,8 @@ class Preconditioner:
     m x m is the size of the preconditioner or the number of columns in the low-rank approximation.
     """
 
-    name: str = "base_precon" 
-    display_name: str = "base_precon" 
+    name: str = "base_precon"
+    display_name: str = "base_precon"
 
     def __call__(
         self, key: Array, matrix: Array, return_mat_and_precon: bool = False, **kwargs
@@ -41,7 +42,7 @@ class Preconditioner:
         self, key: Array, matrix: Array, m: int, indices: Optional[Array] = None
     ) -> Tuple[Array, Array, Array]:
         r"""
-        Extracts submatrices for the Nystrom (or other) preconditioner.
+        Extracts submatrices for the  Nyström (or other) preconditioner.
 
         Args:
             matrix: Array
@@ -102,17 +103,17 @@ class Preconditioner:
 
 class Nystrom(Preconditioner):
     r"""
-    Random Index Nystrom preconditioner using the Woodbury formula.
+    Random Index  Nyström preconditioner using the Woodbury formula.
 
     Approximates :math:`(K + \eta  I)^{-1}` using random column sampling and the Woodbury identity.
     """
 
-    name: str = "Nystrom"  
-    display_name: str = "Nystrom"  
+    name: str = "Nystrom"
+    display_name: str = "Nyström"
 
     def __call__(self, key: Array, matrix: Array, **kwargs) -> Array:
         r"""
-        Construct the Nystrom preconditioner using the Woodbury Inverse.
+        Construct the Nyström preconditioner using the Woodbury Inverse.
 
         Args:
             key: Array
@@ -120,17 +121,17 @@ class Nystrom(Preconditioner):
             matrix: Array
                 Input matrix (shape: [n, n]).
             m: int, required.
-                Number of columns/rows for Nystrom approximation.
+                Number of columns/rows for Nyström approximation.
             max_cond_number: float, optional
                 Maximum allowed condition number for pseudoinverse (default 1e14).
             indices: array or None, optional.
-                Explicit indices for Nystrom subset.
+                Explicit indices for Nyström subset.
             nugget: float, required.
                 Diagonal regulariser in Woodbury inverse.
 
         Returns:
             precon: (n, n) matrix.
-                Approximation to (K + nugget * I)^{-1} using the Nystrom-Woodbury formula.
+                Approximation to (K + nugget * I)^{-1} using the  Nyström-Woodbury formula.
         """
         # ---------- kwargs & sanity checks -----------------------------
         m = kwargs.get("m")
@@ -147,7 +148,7 @@ class Nystrom(Preconditioner):
         K = (matrix + matrix.T) * 0.5
         n = matrix.shape[0]
 
-        # Nystrom submatrices
+        #  Nyström submatrices
         K_mm, K_nm, K_mn = self.sub_matrix(key, K, m, indices=indices)
 
         # Woodbury: (nugget * K_mm + K_mn @ K_nm) is the low-rank correction
@@ -166,24 +167,24 @@ class Nystrom(Preconditioner):
 
 class NystromRandom(Preconditioner):
     """
-    Random Projection Nystrom preconditioner using the Woodbury formula.
+    Random Projection  Nyström preconditioner using the Woodbury formula.
 
     Approximates (K + nugget * I)^{-1} by projecting the n x n matrix K into an m-dimensional random subspace,
     and applying the Woodbury identity to the resulting low-rank matrix.
 
-    This method differs from standard Nystrom by using a random Gaussian projection Ω (not random sampling of columns).
+    This method differs from standard  Nyström by using a random Gaussian projection Ω (not random sampling of columns).
     """
 
-    name: str = "NystromRandom"  
-    display_name: str = "Nystrom (random projection)"  
+    name: str = "NystromRandom"
+    display_name: str = " Nyström (random projection)"
 
     def __call__(self, key: Array, matrix: Array, **kwargs) -> Array:
         """
-        Construct the random projection Nystrom preconditioner using the Woodbury formula.
+        Construct the random projection  Nyström preconditioner using the Woodbury formula.
 
         Args:
             key: Array
-                Random key for reproducibility in random projection.
+                JAX random key used in random projection.
             matrix: Array (n, n)
                 Symmetric matrix to be preconditioned.
             m: int, required in kwargs
@@ -236,20 +237,20 @@ class NystromRandom(Preconditioner):
 
 class NystromDiagonal(Preconditioner):
     r"""
-    Diagonally-weighted Random Index Nystrom preconditioner using the Woodbury formula.
+    Diagonally-weighted Random Index  Nyström preconditioner using the Woodbury formula.
 
     Approximates :math:`(K + \eta I)^{-1}` by sampling columns of :math:`K` with probability proportional to their diagonal
     values, and then applies the Woodbury identity for an approximate inverse.
 
-    This method differs from standard Nystrom by performing weighted (importance) column sampling.
+    This method differs from standard  Nyström by performing weighted (importance) column sampling.
     """
 
-    name: str = "NystromDiagonal"  
-    display_name: str = "Nystrom (diagonal sampling)"  
+    name: str = "NystromDiagonal"
+    display_name: str = " Nyström (diagonal sampling)"
 
     def __call__(self, key: Array, matrix: Array, **kwargs) -> Array:
         r"""
-        Construct the diagonal-weighted Nystrom preconditioner using the Woodbury formula.
+        Construct the diagonal-weighted  Nyström preconditioner using the Woodbury formula.
 
         Args:
             key: Array
@@ -257,7 +258,7 @@ class NystromDiagonal(Preconditioner):
             matrix: Array (n, n)
                 Symmetric matrix to be preconditioned.
             m: int, required in kwargs.
-                Target rank - the number of columns/rows to sample for the Nystrom approximation.
+                Target rank - the number of columns/rows to sample for the  Nyström approximation.
             max_cond_number: float, optional in kwargs.
                 Maximum allowed condition number for pseudoinverse (default 1e14).
             nugget: float, required in kwargs.
@@ -265,7 +266,7 @@ class NystromDiagonal(Preconditioner):
 
         Returns:
             precon: Array (n, n)
-                Approximate inverse :math:`(K + \eta I)^{-1}` constructed via weighted Nystrom sampling and Woodbury identity.
+                Approximate inverse :math:`(K + \eta I)^{-1}` constructed via weighted  Nyström sampling and Woodbury identity.
         """
         # ---------- kwargs & sanity checks -----------------------------
         m = kwargs.get("m")
@@ -290,7 +291,7 @@ class NystromDiagonal(Preconditioner):
         # Weighted random sampling of m unique indices
         indices = jax.random.choice(key, n, shape=(m,), replace=False, p=diag_weights)
 
-        # Nystrom submatrices from weighted indices (key argument not used)
+        #  Nyström submatrices from weighted indices (key argument not used)
         K_mm, K_nm, K_mn = self.sub_matrix(None, K, m, indices=indices)
 
         # Woodbury: (nugget * K_mm + K_mn @ K_nm) is the low-rank correction
@@ -315,8 +316,8 @@ class RandomisedSVD(Preconditioner):
     and then applies the Woodbury formula for efficient approximate inversion. Assumes K is symmetric or PSD.
     """
 
-    name: str = "RandomisedSVD" 
-    display_name: str = "Randomised SVD"
+    name: str = "RandomisedSVD"
+    display_name: str = "Randomised Nyström EVD"
 
     def __call__(self, key: Array, matrix: Array, **kwargs) -> Array:
         """
@@ -376,23 +377,23 @@ class RandomisedSVD(Preconditioner):
 
         # ---------- approximate -----------------------------------------
 
-        # projections
+        # Projections
         B1 = K @ Q  # (n, m)
         B2 = Q.T @ B1  # (m, m)
 
-        # cholesky
+        # Cholesky
         C = jnp.linalg.cholesky(B2)
 
-        # triangle solve
+        # Triangle solve
         F = jax.scipy.linalg.solve_triangular(C, B1.T, lower=True).T
 
-        # svd
+        # SVD
         U, S, V = jnp.linalg.svd(
             F, full_matrices=False
-        )  # shapes:  U (1000, 50)   S (50,)   Vt (50, 50)
+        )  # shapes:  U (n, m)   S (m,)   Vt (m, m)
 
         # Compute Λ and Λ⁻¹ (using optional Tikhonov regularisation)
-        Lambda = S**2  # (50, 50)
+        Lambda = S**2  # (m, m)
         Lambda_inv = jnp.diag(1 / (Lambda + tau))  # Λ⁻¹
 
         # Woodbury inverse to compute preconditioner
@@ -412,7 +413,7 @@ class RandomisedSVD(Preconditioner):
 class FITC(Preconditioner):
     """Fully–Independent Training Conditional (FITC) pre-conditioner."""
 
-    name: str = "FITC" 
+    name: str = "FITC"
     display_name: str = "FITC"
 
     def __call__(self, key: Array, matrix: Array, **kwargs) -> Array:
@@ -497,26 +498,48 @@ class BlockJacobi(Preconditioner):
             Array:
                 Preconditioning matrix constructed via block-wise spectral pseudo-inversion.
         """
-        # ---------- kwargs & sanity checks -----------------------------
-        block_size = kwargs.get("block_size")
-        max_cond_number = kwargs.get("max_cond_number", 1e14)
 
-        if block_size is None:
-            raise ValueError("Keyword argument `block_size` is required.")
+        B = kwargs.get("block_size")
+        max_cond = kwargs.get("max_cond_number", 1e14)
+        if B is None:
+            raise ValueError("`block_size` required")
 
-        # ---------- ensure symmetry ------------------------------------
-        K = (matrix + matrix.T) * 0.5
-        n = matrix.shape[0]
+        # Ensure symmetry
+        K = 0.5 * (matrix + matrix.T)
+        return _block_jacobi_jit(K, B, max_cond, self.spectral_pinv)
 
-        # ---------- allocate result ------------------------------------
-        precon = jnp.zeros_like(K)
 
-        # ---------- loop over blocks -----------------------------------
-        for start in range(0, n, block_size):
-            stop = min(start + block_size, n)  # allow ragged last block
-            block = K[start:stop, start:stop]
+@partial(jax.jit, static_argnums=(1, 3))
+def _block_jacobi_jit(
+    K: Array, block_size: Array, max_cond: Array, spectral_pinv: Any
+) -> Array:
+    n = K.shape[0]
+    nb = (n + block_size - 1) // block_size
+    padded_n = nb * block_size
 
-            block_inv = self.spectral_pinv(block, max_cond_number=max_cond_number)
-            precon = precon.at[start:stop, start:stop].set(block_inv)
+    # 1) pad to (padded_n, padded_n)
+    pad_amt = padded_n - n
+    Kp = jnp.pad(K, ((0, pad_amt), (0, pad_amt)))
 
-        return precon
+    # 2) reshape into blocks
+    #    shape -> (nb, block_size, nb, block_size)
+    Kb = Kp.reshape(nb, block_size, nb, block_size)
+
+    # 3) extract just the diagonal blocks: shape (nb, block_size, block_size)
+    diag_blocks = Kb[jnp.arange(nb), :, jnp.arange(nb), :]
+
+    # 4) invert each block in parallel
+    def inv_block(block):
+        return spectral_pinv(block, max_cond_number=max_cond)
+
+    inv_blocks = jax.vmap(inv_block)(diag_blocks)
+
+    # 5) scatter them back into a zero-padded precon matrix
+    precon_blocks = jnp.zeros_like(Kb)
+    precon_blocks = precon_blocks.at[jnp.arange(nb), :, jnp.arange(nb), :].set(
+        inv_blocks
+    )
+
+    # 6) reshape & unpad to (n, n)
+    precon_padded = precon_blocks.reshape(padded_n, padded_n)
+    return precon_padded[:n, :n]

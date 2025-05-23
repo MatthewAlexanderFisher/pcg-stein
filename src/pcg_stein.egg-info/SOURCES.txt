@@ -7,6 +7,7 @@ src/pcg_stein/distribution.py
 src/pcg_stein/kernel.py
 src/pcg_stein/pcg.py
 src/pcg_stein/precon.py
+src/pcg_stein/registry.py
 src/pcg_stein/util.py
 src/pcg_stein.egg-info/PKG-INFO
 src/pcg_stein.egg-info/SOURCES.txt

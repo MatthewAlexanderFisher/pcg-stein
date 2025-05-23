@@ -1,7 +1,8 @@
 import functools
-import jax.numpy as jnp
+import jax, jax.numpy as jnp
 from jax import jit, vmap, Array
 from typing import Optional, Any
+from functools import partial
 
 
 class Kernel:
@@ -103,7 +104,7 @@ class Kernel:
         )
 
     def stein_matrix(
-        self, X: Array, Y: Array, Sx: Array, Sy: Array, **hyper: Any
+        self, X: Array, Y: Array, Sx: Array, Sy: Array, **hyper: float
     ) -> Array:
         """
         Computes the Stein kernel Gram matrix between two sets of samples.
@@ -124,14 +125,14 @@ class Kernel:
         """
         stein_pair = functools.partial(self._stein_pair, **hyper)
 
-        return jit(
-            vmap(lambda x, sx: vmap(lambda y, sy: stein_pair(x, y, sx, sy))(Y, Sy))
+        return jax.vmap(
+            lambda x, sx: jax.vmap(lambda y, sy: stein_pair(x, y, sx, sy))(Y, Sy)
         )(X, Sx)
 
 
 class Matern52Kernel(Kernel):
-    name: str = "Matern52"  
-    display_name: str = "Matérn 5/2"   
+    name: str = "Matern52"
+    display_name: str = "Matérn 5/2"
 
     @staticmethod
     def _phi(r: Array, *, lengthscale: float = 1.0, amplitude: float = 1.0) -> Array:
@@ -228,10 +229,58 @@ class Matern52Kernel(Kernel):
             -amplitude * (c**2 / 3.0) * (1.0 + c * r - (c * r) ** 2) * jnp.exp(-c * r)
         )
 
+    @functools.partial(
+        jit,
+        static_argnums=(0,),  # self is arg 0 → static
+        static_argnames=("lengthscale", "amplitude"),
+    )
+    def stein_matrix(
+        self,
+        X: Array,
+        Y: Array,
+        Sx: Array,
+        Sy: Array,
+        *,
+        lengthscale: float = 1.0,
+        amplitude: float = 1.0,
+    ) -> Array:
+        stein_pair = functools.partial(
+            self._stein_pair, lengthscale=lengthscale, amplitude=amplitude
+        )
+
+        return jax.vmap(
+            lambda x, sx: jax.vmap(lambda y, sy: stein_pair(x, y, sx, sy))(Y, Sy)
+        )(X, Sx)
+
+    def stein_matvec(
+        self,
+        v: jnp.ndarray,  # shape (n,)
+        X: jnp.ndarray,  # shape (n,d)
+        Sx: jnp.ndarray,  # shape (n,d)
+        **hyper,
+    ) -> jnp.ndarray:
+        """
+        Matrix‐free mat‐vec for the Stein kernel:
+            (K @ v)[i] = sum_j k_p(x_i, x_j) * v[j]
+        without ever forming the full K.
+        """
+        # bind the hyper‐parameters into the pairwise function
+        stein_pair = functools.partial(self._stein_pair, **hyper)
+
+        # for a fixed i, compute the i-th row of K dot v:
+        def row_dot(x_i, sx_i):
+            # shape (n,) of row i
+            K_i = vmap(lambda x_j, sx_j: stein_pair(x_i, x_j, sx_i, sx_j))(X, Sx)
+            # then dot with v
+            return jnp.dot(K_i, v)
+
+        # vectorise over i=0..n-1
+        return vmap(row_dot)(X, Sx)
+
 
 class Matern72Kernel(Kernel):
-    name: str = "Matern72"             
-    display_name: str = "Matérn 7/2"   
+    name: str = "Matern72"
+    display_name: str = "Matérn 7/2"
 
     @staticmethod
     def _phi(r: Array, *, lengthscale: float = 1.0, amplitude: float = 1.0) -> Array:
@@ -343,10 +392,33 @@ class Matern72Kernel(Kernel):
             * jnp.exp(-c * r)
         )
 
+    @functools.partial(
+        jit,
+        static_argnums=(0,),  # self is arg 0 → static
+        static_argnames=("lengthscale", "amplitude"),
+    )
+    def stein_matrix(
+        self,
+        X: Array,
+        Y: Array,
+        Sx: Array,
+        Sy: Array,
+        *,
+        lengthscale: float = 1.0,
+        amplitude: float = 1.0,
+    ) -> Array:
+        stein_pair = functools.partial(
+            self._stein_pair, lengthscale=lengthscale, amplitude=amplitude
+        )
+
+        return jax.vmap(
+            lambda x, sx: jax.vmap(lambda y, sy: stein_pair(x, y, sx, sy))(Y, Sy)
+        )(X, Sx)
+
 
 class GaussianKernel(Kernel):
-    name: str = "Gaussian"  
-    display_name: str = "Gaussian (RBF)"   
+    name: str = "Gaussian"
+    display_name: str = "Gaussian (RBF)"
 
     @staticmethod
     def _phi(r: Array, *, lengthscale: float = 1.0, amplitude: float = 1.0) -> Array:
@@ -440,10 +512,33 @@ class GaussianKernel(Kernel):
         base = amplitude * jnp.exp(z) / lengthscale**2
         return base * ((r / lengthscale) ** 2 - 1)  # σ²/ℓ² · ((r/ℓ)² − 1) · e^{z}
 
+    @functools.partial(
+        jit,
+        static_argnums=(0,),  # self is arg 0 → static
+        static_argnames=("lengthscale", "amplitude"),
+    )
+    def stein_matrix(
+        self,
+        X: Array,
+        Y: Array,
+        Sx: Array,
+        Sy: Array,
+        *,
+        lengthscale: float = 1.0,
+        amplitude: float = 1.0,
+    ) -> Array:
+        stein_pair = functools.partial(
+            self._stein_pair, lengthscale=lengthscale, amplitude=amplitude
+        )
+
+        return jax.vmap(
+            lambda x, sx: jax.vmap(lambda y, sy: stein_pair(x, y, sx, sy))(Y, Sy)
+        )(X, Sx)
+
 
 class IMQKernel(Kernel):
-    name: str = "IMQ"  
-    display_name: str = "Inverse Multiquadric (IMQ)"   
+    name: str = "IMQ"
+    display_name: str = "Inverse Multiquadric (IMQ)"
 
     @staticmethod
     def _phi(
@@ -452,7 +547,7 @@ class IMQKernel(Kernel):
         lengthscale: float = 1.0,
         amplitude: float = 1.0,
         gamma: float = 1.0,
-        beta: float = 0.5
+        beta: float = 0.5,
     ) -> Array:
         r"""
         Computes the radial profile :math:`\varphi(r)` of the Inverse Multiquadric (IMQ) kernel.
@@ -494,7 +589,7 @@ class IMQKernel(Kernel):
         lengthscale: float = 1.0,
         amplitude: float = 1.0,
         gamma: float = 1.0,
-        beta: float = 0.5
+        beta: float = 0.5,
     ) -> Array:
         r"""
         Computes the first derivative of the Inverse Multiquadric (IMQ) radial profile
@@ -539,7 +634,7 @@ class IMQKernel(Kernel):
         lengthscale: float = 1.0,
         amplitude: float = 1.0,
         gamma: float = 1.0,
-        beta: float = 0.5
+        beta: float = 0.5,
     ) -> Array:
         r"""
         Computes the second derivative of the Inverse Multiquadric (IMQ) radial profile
@@ -585,3 +680,32 @@ class IMQKernel(Kernel):
                 + 4.0 * beta * (beta + 1.0) * r**2 / lengthscale**4
             )
         )
+
+    @functools.partial(
+        jit,
+        static_argnums=(0,),  # self is arg 0 → static
+        static_argnames=("lengthscale", "amplitude", "gamma", "beta"),
+    )
+    def stein_matrix(
+        self,
+        X: Array,
+        Y: Array,
+        Sx: Array,
+        Sy: Array,
+        *,
+        lengthscale: float = 1.0,
+        amplitude: float = 1.0,
+        gamma: float = 1.0,
+        beta: float = 0.5,
+    ) -> Array:
+        stein_pair = functools.partial(
+            self._stein_pair,
+            lengthscale=lengthscale,
+            amplitude=amplitude,
+            gamma=gamma,
+            beta=beta,
+        )
+
+        return jax.vmap(
+            lambda x, sx: jax.vmap(lambda y, sy: stein_pair(x, y, sx, sy))(Y, Sy)
+        )(X, Sx)

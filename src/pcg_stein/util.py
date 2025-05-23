@@ -325,9 +325,3 @@ def plot_heatmap_data(
     plt.tight_layout(rect=[0, 0, 0.9, 1])
     plt.show()
     return fig, axes
-
-
-# Example usage:
-# with open('heatmap_data_4d_oneovern.pkl', 'rb') as f:
-#     all_heatmap_data = pickle.load(f)
-# fig, axes = plot_heatmap_data(all_heatmap_data)

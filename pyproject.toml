@@ -20,6 +20,7 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "black==25.1.0", 
+    "tensorboard==2.19.0"
 ]
 docs = [
     "sphinx", 

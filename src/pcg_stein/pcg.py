@@ -1,13 +1,13 @@
 import jax, jax.numpy as jnp
 from functools import partial
 from jax import Array
-from typing import Optional
+from typing import Optional, Callable
+from jax import lax
 
-# 1.  PCG JIT-compiled core function
 
-
-@partial(jax.jit, static_argnames=("rtol", "atol", "maxiter"))
-def _pcg_core(
+# PCG with history JIT-compiled core function
+@partial(jax.jit, static_argnames=("rtol", "atol", "wce_tol", "maxiter"))
+def _pcg_core_history(
     A,
     b,
     *,
@@ -64,7 +64,7 @@ def _pcg_core(
         x0 = jnp.zeros_like(b)
 
     # worst-case error estimate – stays inside the compiled graph
-    def wce_estimate(w):  # √(wᵀAw) / (1ᵀw)
+    def wce(w):  # √(wᵀAw) / (1ᵀw)
         return jnp.sqrt(w @ (A @ w)) / (
             jnp.sum(w) + 1e-30
         )  # protection against zero denominator
@@ -95,7 +95,7 @@ def _pcg_core(
             res_n = jnp.linalg.norm(r_n)
 
             k_n = k + 1
-            wce_n = wce_estimate(x_n)  # worst-case error
+            wce_n = wce(x_n)  # worst-case error
             done_n = (
                 (res_n <= atol)
                 | (res_n <= rtol * res0)
@@ -122,6 +122,65 @@ def _pcg_core(
     return x_final, k_final, res_all, wce_all
 
 
+# PCG without history JIT-compiled core function
+@partial(jax.jit, static_argnames=("rtol", "atol", "wce_tol", "maxiter"))
+def _pcg_core(
+    A: Array,
+    b: Array,
+    M_inv: Array,
+    *,
+    rtol: float = 1e-6,
+    atol: float = 1e-6,
+    wce_tol: float = 0.0,
+    maxiter: int = 1000,
+    x0: Optional[Array] = None,
+) -> tuple[Array, int, float, float]:
+    """
+    PCG that returns only (x_final, k_final, res_final, wce_final),
+    implemented via lax.while_loop.
+    """
+
+    x = jnp.zeros_like(b) if x0 is None else x0
+    r = b - A @ x
+    z = M_inv @ r
+    rho = r @ z
+    res0 = jnp.linalg.norm(r)
+    eps = jnp.finfo(A.dtype).tiny
+
+    def wce(w):  # √(wᵀAw) / (1ᵀw)
+        return jnp.sqrt(w @ (A @ w)) / (
+            jnp.sum(w) + 1e-30
+        )  # protection against zero denominator
+
+    # state = (k, x, r, z, rho, res, w, done)
+    state = (0, x, r, z, rho, res0, jnp.inf, False)
+
+    def cond(state):
+        k, _, r, _, _, res, w, _ = state
+        return ~((res <= atol) | (res <= rtol * res0) | (w <= wce_tol) | (k >= maxiter))
+
+    def body(state):
+        k, x, r, z, rho, res, _, _ = state
+
+        Az = A @ z
+        alpha = rho / (z @ Az + eps)
+        x = x + alpha * z
+        r = r - alpha * Az
+        rho_new = r @ (M_inv @ r)
+        beta = rho_new / (rho + eps)
+        z = M_inv @ r + beta * z
+        res = jnp.linalg.norm(r)
+        w = wce(x)
+
+        return (k + 1, x, r, z, rho_new, res, w, False)
+
+    k_final, x_final, r_final, z_final, rho_final, res_final, wce_final, _ = (
+        lax.while_loop(cond, body, state)
+    )
+
+    return x_final, k_final, res_final, wce_final
+
+
 # Public wrapper: trim histories to length k after jitting
 def pcg(
     A,
@@ -133,6 +192,7 @@ def pcg(
     maxiter: int = 1_000,
     M_inv: Optional[Array] = None,
     x0: Optional[Array] = None,
+    return_history: bool = True,
 ) -> tuple[Array, int, Array, Array]:
     r"""
     Solves the linear system :math:`Ax = b` using the Preconditioned Conjugate Gradient (PCG) method,
@@ -185,7 +245,58 @@ def pcg(
         when the RKHS norm :math:`\|v\|_{\mathcal{H}(k_p)}` is unknown.
     """
 
-    x, k, res_all, wce_all = _pcg_core(
-        A, b, rtol=rtol, atol=atol, wce_tol=wce_tol, maxiter=maxiter, M_inv=M_inv, x0=x0
+    n = A.shape[0]
+
+    if return_history is True:
+        x, k, res_all, wce_all = _pcg_core_history(
+            A,
+            b,
+            rtol=rtol,
+            atol=atol,
+            wce_tol=wce_tol,
+            maxiter=maxiter,
+            M_inv=M_inv,
+            x0=x0,
+        )
+        return x, k, res_all[:k], wce_all[:k]
+    else:
+        if M_inv is None:
+            M_inv = jnp.eye(n)
+        x_final, k_final, res_final, wce_final = _pcg_core(
+            A,
+            b,
+            M_inv,
+            rtol=rtol,
+            atol=atol,
+            wce_tol=wce_tol,
+            maxiter=maxiter,
+            x0=x0,
+        )
+        return x_final, k_final, res_final, wce_final
+
+
+def pcg_batch(A, b, M_inv_batch, *,
+              rtol=1e-6, atol=1e-6, wce_tol=0.0, maxiter=1000, x0=None):
+    
+    # 1) bind the scalar/defaults into _pcg_core
+    pcg_fixed = partial(
+        _pcg_core,
+        rtol=rtol,
+        atol=atol,
+        wce_tol=wce_tol,
+        maxiter=maxiter,
+        x0=x0,           
     )
-    return x, k, res_all[:k], wce_all[:k]
+
+    # 2) vectorise over the 0th axis of M_inv_batch
+    vmapped = jax.vmap(
+        pcg_fixed,
+        in_axes=(None, None, 0),    # A: broadcast, b: broadcast, M_inv_batch: map over axis 0
+        out_axes=(0, 0, 0, 0),      # each output gets a leading batch dim
+    )
+
+    # 3) call it
+    x_batch, k_batch, res_batch, wce_batch = vmapped(A, b, M_inv_batch)
+    return x_batch, k_batch, res_batch, wce_batch
+
+

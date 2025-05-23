@@ -1,10 +1,12 @@
 #!/usr/bin/env python
+
+import os
+
 from tqdm.auto import tqdm
 import os, argparse, math, yaml
 from functools import partial
 import pandas as pd
 from pathlib import Path
-
 
 def parse_args():
     p = argparse.ArgumentParser()
@@ -25,16 +27,10 @@ config_path = args.config  # Path to experiment config file
 
 if use_cpu:
     os.environ["JAX_PLATFORM_NAME"] = "cpu"
-    
-    # Tell XLA/Eigen to multi-thread on CPU
-    os.environ["XLA_FLAGS"]         = "--xla_cpu_multi_thread_eigen=true intrasession=true"
-    os.environ["OMP_NUM_THREADS"]   = "16"   # or however many cores you want
-    os.environ["MKL_NUM_THREADS"]   = "16"
-
 
 import jax, jax.numpy as jnp
 from pcg_stein.registry import PRECON_REGISTRY, KERNEL_REGISTRY, DISTRIBUTION_REGISTRY
-from pcg_stein.pcg import pcg
+from pcg_stein.pcg import pcg, pcg_batch
 
 jax.config.update("jax_enable_x64", True)
 
@@ -120,48 +116,38 @@ def process_one_rep(args_tuple):
 
             precon_kwarg_loop = BLOCK_SIZES if precon.name == "BlockJacobi" else NUGGETS
 
-            precon_args_pbar = tqdm(precon_kwarg_loop, position=3, leave=False)
-            for precon_arg in precon_args_pbar:
-                if precon.name == "BlockJacobi":
-                    precon_args_pbar.set_description(f"Block Size = {precon_arg}")
-                else:
-                    precon_args_pbar.set_description(f"Nugget = {precon_arg:.3f}")
+            precon_mat_list = []
+            precon_kwargs_list = []
+            for precon_arg in precon_kwarg_loop:
 
-                # key for preconditioner
-                rep_key, precon_key = jax.random.split(rep_key, 2)
-
-                # kwargs for preconditioner
                 precon_kwargs = (
                     {"nugget": None, "block_size": precon_arg, "m": M_RANK}
                     if precon.name == "BlockJacobi"
                     else {"nugget": precon_arg, "block_size": None, "m": M_RANK}
                 )
+                precon_kwargs_list.append(precon_kwargs)
 
-                # compute preconditioner matrix
-                precon_mat = precon(precon_key, K, **precon_kwargs)
+                rep_key, precon_key = jax.random.split(rep_key, 2)
 
-                # perform PCG
-                x_pcg, m_pcg, res_pcg, wce_pcg = pcg(
-                    K,
-                    b,
-                    rtol=0.0,
-                    atol=0.0,
-                    wce_tol=wce_tol,
-                    maxiter=MAXITER,
-                    M_inv=precon_mat,
-                )
+                precon_mat_list.append(precon(precon_key, K, **precon_kwargs))
 
+            # batched CG
+            precon_batch = jnp.stack(precon_mat_list)
+            x_pcgs, m_pcgs, res_pcgs, wce_pcgs = pcg_batch(
+                K, b, precon_batch, rtol=0.0, atol=0.0, wce_tol=wce_tol, maxiter=MAXITER
+            )
+
+            for i in range(len(precon_kwargs_list)):
                 rows.append(
                     {
                         "replicate": rep,
                         "lengthscale": lengthscale,
                         "precon": precon.name,
-                        **precon_kwargs,
+                        **precon_kwargs_list[i],
                         "m_cg": float(m_cg),
-                        "m_pcg": float(m_pcg),
+                        "m_pcg": float(m_pcgs[i]),
                     }
                 )
-
     return rows
 
 
@@ -191,7 +177,7 @@ for item in tqdm(rep_data, desc="Replicates"):
 
 # --------------- Save output -----------------
 
-save_name = 'fig1'
+save_name = 'fig1_test'
 outdir = Path("results")
 outdir.mkdir(exist_ok=True)
 pd.DataFrame(results).to_csv(outdir / f"{save_name}.csv", index=False)

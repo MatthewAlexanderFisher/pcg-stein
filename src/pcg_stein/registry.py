@@ -9,6 +9,8 @@ from pcg_stein.precon import (
 
 from pcg_stein.kernel import Matern52Kernel, Matern72Kernel, GaussianKernel, IMQKernel
 
+from pcg_stein.distribution import BayesianLogisticRegression
+
 PRECON_REGISTRY = {
     cls.name: cls
     for cls in [
@@ -24,3 +26,5 @@ PRECON_REGISTRY = {
 KERNEL_REGISTRY = {
     cls.name: cls for cls in [Matern52Kernel, Matern72Kernel, GaussianKernel, IMQKernel]
 }
+
+DISTRIBUTION_REGISTRY = {cls.name: cls for cls in [BayesianLogisticRegression]}

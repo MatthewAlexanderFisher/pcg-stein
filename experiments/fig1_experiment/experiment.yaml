@@ -1,13 +1,21 @@
 # PCG sweep configuration
 replicates: 50
-mcmc_samples: 1000
 
-# kernel hyperparameters
-lengthscales: [1e-2, 1e-1, 1.0, 1e1, 1e2]
+# Worst-case error multiplicative factor
+wce_mul: 1.01
+
+# Number of iterations used in CG to compute reference worst-case error
+n_iter_wce_reference: 5000
+
+# Maximum number of CG/PCG iterations before termination criterion
+maxiter: 2000
+
+# kernel hyperparameters log_e(lengthscales)
+ln_lengthscales: [-2, -1, 0, 1, 2]
 
 # preconditioner parameters
 block_sizes:  [1, 2, 3, 4, 5]
-nuggets:      [1e-4, 1e-2, 1.0, 1e2, 1e4]
+ln_nuggets:      [-3, -2, -1, 0, 1]
 
 # low-rank target
 m_rank: 50
@@ -17,9 +25,17 @@ kernel: "Matern52"
 
 # preconditioners to test (must match .name in PRECON_REGISTRY)
 precons:
+  - "BlockJacobi"
   - "Nystrom"
   - "NystromRandom"
   - "NystromDiagonal"
   - "RandomisedSVD"
   - "FITC"
-  - "BlockJacobi"
+
+# distribution configuration (must match .name in DISTRIBUTION_REGISTRY)
+dist: "BayesianLogisticRegression"
+dist_synth_key: 0 # jax.random.key(0) used to generate synthetic data
+num_synth_samples: 1000 # number of synthetic data points to generate
+num_mcmc_samples: 1000
+true_beta: [1.0, -2.0, 1.0, 4.0]
+sigma_prior: 1.

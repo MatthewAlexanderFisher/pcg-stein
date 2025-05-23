@@ -52,8 +52,10 @@ class BayesianLogisticRegression(Distribution):
     """Bayesian logistic regression with Gaussian prior and MH sampler.
 
     Use :py:meth:`from_synthetic` to build a model instance directly from a
-    *true* parameter vector – handy for demos, teaching, or simulation studies.
+    *true* parameter vector.
     """
+
+    name: str = "BayesianLogisticRegression"
 
     @classmethod
     def from_synthetic(
@@ -173,6 +175,73 @@ class BayesianLogisticRegression(Distribution):
 
     def log_prob(self, beta: Array) -> Array:
         return self.log_likelihood(beta) + self.log_prior(beta)
+
+    # def _mh_step(self, key, state, step):
+    #     """One Metropolis–Hastings step on (beta, logp)."""
+    #     beta, logp = state
+    #     key, sub   = jax.random.split(key)
+    #     prop       = beta + step * jax.random.normal(sub, beta.shape)
+    #     logp_prop  = self.log_prob(prop)
+    #     accept     = jax.random.uniform(key) < jnp.exp(logp_prop - logp)
+    #     beta_new   = jnp.where(accept, prop, beta)
+    #     logp_new   = jnp.where(accept, logp_prop, logp)
+    #     return (beta_new, logp_new), accept
+
+    # def sample(self,
+    #            key: Array,
+    #            num_samples: int,
+    #            *,
+    #            step_size: float = 0.3,
+    #            burn_in:   int   = 1_000,
+    #            thinning:  int   = 1,
+    #            init_beta: Array | None = None,
+    #            unique: bool = True,
+    #            ) -> Array:
+
+    #     if thinning < 1:
+    #         raise ValueError("`thinning` must be ≥ 1")
+
+    #     d = self.X.shape[1]
+    #     if init_beta is None:
+    #         init_beta = jnp.zeros(d)
+
+    #     init_state = (init_beta, self.log_prob(init_beta))
+
+    #     # ---------------------------------------------------- burn-in
+    #     def burn_fn(carry, k):
+    #         (beta, logp), _ = self._mh_step(k, carry, step_size)
+    #         return (beta, logp), None
+
+    #     key, *burn_keys = jax.random.split(key, burn_in + 1)
+    #     (beta, logp), _ = jax.lax.scan(burn_fn, init_state, jnp.array(burn_keys))
+
+    #     # ---------------------------------------------------- sampling
+    #     total_iters = num_samples * thinning if unique else num_samples * thinning
+    #     key, *loop_keys = jax.random.split(key, total_iters + 1)
+
+    #     def body(carry, k):
+    #         (beta, logp), acc_cnt, it_cnt, out_idx, buf = carry
+
+    #         (beta, logp), accepted = self._mh_step(k, (beta, logp), step_size)
+
+    #         acc_cnt += accepted
+    #         it_cnt  += 1
+    #         keep = (acc_cnt % thinning == 0) if unique else (it_cnt % thinning == 0)
+
+    #         buf = jax.lax.cond(
+    #             keep,
+    #             lambda b: b.at[out_idx].set(beta),
+    #             lambda b: b,
+    #             buf
+    #         )
+    #         out_idx += keep
+    #         return ((beta, logp), acc_cnt, it_cnt, out_idx, buf), None
+
+    #     buf = jnp.zeros((num_samples, d))
+    #     init_carry = ((beta, logp), 0, 0, 0, buf)
+    #     ( _, _, _, _, samples), _ = jax.lax.scan(body, init_carry,
+    #                                              jnp.array(loop_keys))
+    #     return samples
 
     ###  Metropolis–Hastings sampler
     def sample(
