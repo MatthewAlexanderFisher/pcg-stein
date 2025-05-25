@@ -10,10 +10,12 @@ Implements preconditioned conjugate gradient (PCG) methods to solve the system
 where :math:`K` is a symmetric PSD Gram matrix produced by a Stein kernel.
 
 .. toctree::
-   :maxdepth: 4
-   :caption: API Reference
+   :maxdepth: 2
 
-   pcg_stein
-   .. pcg_stein.kernel
-   .. pcg_stein.pcg
-   .. pcg_stein.precon
+   api/modules
+
+References
+----------
+
+.. bibliography::
+   :cited:

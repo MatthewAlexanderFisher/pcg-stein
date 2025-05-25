@@ -1,15 +1,16 @@
 import jax, jax.numpy as jnp
-from jax import Array, lax
+from jax import Array, lax, tree_util
 from typing import Optional, Tuple, Any
 from functools import partial
+from dataclasses import dataclass
 
+from pcg_stein.linear import LinearOperator
 
 class Preconditioner:
     """
     Base class for preconditioners.
 
-    n x n is the size of the original (square) matrix to be preconditioned.
-    m x m is the size of the preconditioner or the number of columns in the low-rank approximation.
+    ``(n, n)`` is the shape of the original (square) matrix to be preconditioned.
     """
 
     name: str = "base_precon"
@@ -24,14 +25,15 @@ class Preconditioner:
         Should be implemented in subclasses.
 
         Args:
-            key: Array
-                JAX random key, for any stochasticity required in the preconditioner.
-            matrix: Array
+            key:
+                JAX random key, for any randomness required in the preconditioner.
+            matrix:
                 The matrix to precondition.
-            return_mat_and_precon: bool (default False)
+            return_mat_and_precon:
                 Whether to return both the approximated matrix and its preconditioner (approximate inverse).
-                If True, the function returns a tuple `(preconditioner, matrix_approx)`; otherwise, only the preconditioner.
-            **kwargs: Additional keyword arguments for flexibility.
+                If ``True``, returns the tuple ``(preconditioner, matrix_approx)``.
+                If ``False``, returns only the preconditioner.
+            **kwargs: Additional keyword arguments.
 
         Returns:
             Depends on subclass implementation.
@@ -40,28 +42,28 @@ class Preconditioner:
 
     def sub_matrix(
         self, key: Array, matrix: Array, m: int, indices: Optional[Array] = None
-    ) -> Tuple[Array, Array, Array]:
+    ) -> tuple[Array, Array, Array]:
         r"""
         Extracts submatrices for the  Nyström (or other) preconditioner.
 
         Args:
-            matrix: Array
-                Input matrix (shape: [n, n]).
-            key: Array
-                JAX random key for sampling indices, if not provided.
-            m: int
+            matrix:
+                Input matrix. Shape: ``(n,n)``.
+            key:
+                JAX random key for sampling indices. Ignored if ``indices`` are provided.
+            m:
                 Number of columns/rows to select (size of the submatrix).
-            indices: Optional[Array], optional
-                If given, use these indices directly (shape: [m,]).
-                If None, sample indices randomly.
+            indices:
+                If given, use these indices directly. Shape: ``(m,)``.
+                If not provided, sample indices randomly.
 
         Returns:
-            K_mm: Array
-                Submatrix for chosen indices (shape: [m, m]).
-            K_nm: Array
-                All rows, selected columns (shape: [n, m]).
-            K_mn: Array
-                All columns, selected rows (shape: [m, n]).
+            tuple[Array, Array, Array]:
+
+                - ``K_mm``: Submatrix for chosen indices. Shape: ``(m,m)``.
+                - ``K_nm``: All rows, selected columns. Shape: ``(n,m)``.
+                - ``K_mn``: All columns, selected rows. Shape: ``(m,n)``.
+
         """
         n = matrix.shape[0]  # size of matrix
 
@@ -80,16 +82,16 @@ class Preconditioner:
         Computes the Moore-Penrose pseudoinverse of a matrix, with optional spectral clipping.
 
         Args:
-            matrix: Array
-                The matrix to invert (shape: [m, m]).
-            max_cond_number: float, optional
+            matrix:
+                The matrix to invert. Shape: ``(m,m)``.
+            max_cond_number:
                 Maximum allowed condition number (largest/smallest singular value ratio).
-                If provided, singular values smaller than s_max / max_cond_number are clipped
-                for numerical stability. Default is 1e14.
+                If provided, singular values smaller than ``s_max / max_cond_number`` are clipped
+                for numerical stability.
 
         Returns:
-            matrix_inv: Array
-                The pseudoinverse of the input matrix (shape: [m, m]).
+            Array:
+                The pseudoinverse of the input matrix. Shape: ``(m,m)``.
         """
 
         U, s, Vh = jnp.linalg.svd(matrix, full_matrices=False)
@@ -100,6 +102,32 @@ class Preconditioner:
         matrix_inv = (Vh.T * (1.0 / s)) @ U.T
         return matrix_inv
 
+@tree_util.register_pytree_node_class
+@dataclass(frozen=True)
+class LowRankWoodbury:
+    r"""
+    Implements :math:`P = (I - K_{nm}\,W \,K_{mn}) / \mathrm{nugget}`.
+    On vectors ``v`` this is :math:`P \, v`.
+    """
+    K_nm: Array
+    W: Array
+    nugget: float
+    __array_priority__ = 10.0
+    def __matmul__(self, v):   
+        ktv = self.K_nm.T @ v
+        b = self.W @ ktv
+        kb = self.K_nm @ b
+        return (v - kb) / self.nugget
+
+    # pytree methods:
+    def tree_flatten(self):
+        # the arrays are leaves, nugget goes in aux
+        return ((self.K_nm, self.W), self.nugget)
+
+    @classmethod
+    def tree_unflatten(cls, nugget, children):
+        K_nm, W = children
+        return cls(K_nm=K_nm, W=W, nugget=nugget)
 
 class Nystrom(Preconditioner):
     r"""
@@ -111,27 +139,33 @@ class Nystrom(Preconditioner):
     name: str = "Nystrom"
     display_name: str = "Nyström"
 
-    def __call__(self, key: Array, matrix: Array, **kwargs) -> Array:
+    def __call__(self, key: Array, matrix: Array, full_mat: bool = True, **kwargs) -> Array | LowRankWoodbury:
         r"""
         Construct the Nyström preconditioner using the Woodbury Inverse.
 
         Args:
-            key: Array
-                JAX random key for sampling indices, if not provided.
-            matrix: Array
-                Input matrix (shape: [n, n]).
-            m: int, required.
-                Number of columns/rows for Nyström approximation.
-            max_cond_number: float, optional
-                Maximum allowed condition number for pseudoinverse (default 1e14).
-            indices: array or None, optional.
-                Explicit indices for Nyström subset.
-            nugget: float, required.
-                Diagonal regulariser in Woodbury inverse.
+            key:
+                JAX random key for sampling indices. Ignored if ``indices`` are provided.
+            matrix:
+                Matrix to be preconditioned. Shape: ``(n,n)``.
+            full_mat:
+                If ``True`` returns the full shape ``(n,n)`` approximate inverse.
+                If ``False``, return only the Woodbury‐form low‐rank components
+                needed to apply the inverse in :math:`O(n m + m^2)` time and :math:`O(n m)` memory.
+            m (``int``):
+                Required in ``kwargs``. Number of columns/rows for Nyström approximation.
+            max_cond_number (``float``):
+                Maximum allowed condition number for pseudoinverse. Defaults to ``1e14``.
+            indices (``Optional[Array]``):
+                An optional array of indices to to compute the submatrix. If not provided, defaults
+                to random sampling using ``key``.
+            nugget (``float``):
+                Required in ``kwargs``. Diagonal regulariser in Woodbury inverse.
 
         Returns:
-            precon: (n, n) matrix.
-                Approximation to (K + nugget * I)^{-1} using the  Nyström-Woodbury formula.
+            Array:
+                Approximate inverse :math:`(\mathbf{K} + \eta \mathbf{I})^{-1}` constructed
+                via random index sampling and the Woodbury identity. Shape: ``(n,n)``.
         """
         # ---------- kwargs & sanity checks -----------------------------
         m = kwargs.get("m")
@@ -159,44 +193,52 @@ class Nystrom(Preconditioner):
 
         # Final preconditioner approximation
         # Precon ≈ (K + nugget * I)^{-1} = (I - K_nm @ matrix_woodbury_inv @ K_mn) / nugget
-        eye = jnp.eye(n)
-        precon = (eye - K_nm @ matrix_woodbury_inv @ K_mn) / nugget
+        if full_mat is True:
+            eye = jnp.eye(n)
+            precon = (eye - K_nm @ matrix_woodbury_inv @ K_mn) / nugget
 
-        return precon
-
+            return precon
+        else:
+            return LowRankWoodbury(K_nm, matrix_woodbury_inv, nugget)
 
 class NystromRandom(Preconditioner):
-    """
+    r"""
     Random Projection  Nyström preconditioner using the Woodbury formula.
 
-    Approximates (K + nugget * I)^{-1} by projecting the n x n matrix K into an m-dimensional random subspace,
-    and applying the Woodbury identity to the resulting low-rank matrix.
+    Approximates :math:`(\mathbf{K} + \eta \mathbf{I})^{-1}` where :math:`\mathbf{K}` is the input `matrix` and :math:`\eta`
+    corresponds to the ``nugget`` parameter in the Woodbury inverse. Projects :math:`\mathbf{K}` into an m-dimensional subspace,
+    using a random Gaussian matrix :math:`\mathbf{\Omega}` and applies the Woodbury identity to the resulting low-rank matrix.
 
-    This method differs from standard  Nyström by using a random Gaussian projection Ω (not random sampling of columns).
+    This method differs from standard Nyström by using a random Gaussian projection :math:`\mathbf{\Omega}` (not a random sampling of columns).
     """
 
     name: str = "NystromRandom"
     display_name: str = " Nyström (random projection)"
 
-    def __call__(self, key: Array, matrix: Array, **kwargs) -> Array:
-        """
-        Construct the random projection  Nyström preconditioner using the Woodbury formula.
+    def __call__(self, key: Array, matrix: Array, full_mat: bool = True, **kwargs) -> Array | LowRankWoodbury:
+        r"""
+        Construct the random projection Nyström preconditioner using the Woodbury formula.
 
         Args:
-            key: Array
+            key:
                 JAX random key used in random projection.
-            matrix: Array (n, n)
-                Symmetric matrix to be preconditioned.
-            m: int, required in kwargs
-                Target dimension for the projection (rank of the approximation).
-            max_cond_number: float, optional
-                Maximum allowed condition number for pseudoinverse (default 1e14).
-            nugget: float, required.
-                Diagonal regulariser in Woodbury inverse.
+            matrix:
+                Matrix to be preconditioned. Shape: ``(n,n)``.
+            full_mat:
+                If ``True`` returns the full shape ``(n,n)`` approximate inverse.
+                If ``False``, return only the Woodbury‐form low‐rank components
+                needed to apply the inverse in :math:`O(n m + m^2)` time and :math:`O(n m)` memory.
+            m (``int``):
+                Required in ``kwargs``. Target dimension for the projection (rank of the approximation).
+            max_cond_number (``float``):
+                Maximum allowed condition number for pseudoinverse. Defaults to ``1e14``.
+            nugget (``float``):
+                Required in ``kwargs``. Diagonal regulariser in Woodbury inverse.
 
         Returns:
-            precon: Array (n, n)
-                Approximate inverse (K + nugget * I)^{-1} constructed via random projection and the Woodbury identity.
+            Array:
+                Approximate inverse :math:`(\mathbf{K} + \eta \mathbf{I})^{-1}` constructed via
+                random projection and the Woodbury identity. Shape: ``(n,n)``.
         """
         # ---------- kwargs & sanity checks -----------------------------
         m = kwargs.get("m")
@@ -228,45 +270,51 @@ class NystromRandom(Preconditioner):
         )
 
         # 4. Preconditioner via Woodbury identity
-        eye = jnp.eye(n)
-        # precon ≈ (K + nugget * I)^(-1) ≈ (I - mat_project @ matrix_woodbury_inv @ mat_project.T) / nugget
-        precon = (eye - mat_project @ matrix_woodbury_inv @ mat_project.T) / nugget
-
-        return precon
+        if full_mat is True:
+            eye = jnp.eye(n)
+            # precon ≈ (K + nugget * I)^(-1) ≈ (I - mat_project @ matrix_woodbury_inv @ mat_project.T) / nugget
+            precon = (eye - mat_project @ matrix_woodbury_inv @ mat_project.T) / nugget
+            return precon
+        else:
+            return LowRankWoodbury(mat_project, matrix_woodbury_inv, nugget)
 
 
 class NystromDiagonal(Preconditioner):
     r"""
-    Diagonally-weighted Random Index  Nyström preconditioner using the Woodbury formula.
+    Diagonally-weighted Random Index Nyström preconditioner using the Woodbury formula.
 
     Approximates :math:`(K + \eta I)^{-1}` by sampling columns of :math:`K` with probability proportional to their diagonal
     values, and then applies the Woodbury identity for an approximate inverse.
 
-    This method differs from standard  Nyström by performing weighted (importance) column sampling.
+    This method differs from standard Nyström by performing weighted (importance) column sampling.
     """
 
     name: str = "NystromDiagonal"
     display_name: str = " Nyström (diagonal sampling)"
 
-    def __call__(self, key: Array, matrix: Array, **kwargs) -> Array:
+    def __call__(self, key: Array, matrix: Array, full_mat: bool = True, **kwargs) -> Array | LowRankWoodbury:
         r"""
         Construct the diagonal-weighted  Nyström preconditioner using the Woodbury formula.
 
         Args:
-            key: Array
+            key:
                 Random key for reproducibility in random projection.
-            matrix: Array (n, n)
-                Symmetric matrix to be preconditioned.
-            m: int, required in kwargs.
-                Target rank - the number of columns/rows to sample for the  Nyström approximation.
-            max_cond_number: float, optional in kwargs.
-                Maximum allowed condition number for pseudoinverse (default 1e14).
-            nugget: float, required in kwargs.
-                Diagonal regulariser in Woodbury inverse.
+            matrix:
+                Symmetric matrix to be preconditioned. Shape ``(n, n)``.
+            full_mat:
+                If ``True`` returns the full shape ``(n,n)`` approximate inverse.
+                If ``False``, return only the Woodbury‐form low‐rank components
+                needed to apply the inverse in :math:`O(n m + m^2)` time and :math:`O(n m)` memory.
+            m (``int``):
+                 Required in ``kwargs``. Target rank - the number of columns/rows to sample for the  Nyström approximation.
+            max_cond_number (``float``):
+                Optional in ``kwargs``. Maximum allowed condition number for pseudoinverse. Defaults to ``1e14``.
+            nugget (``float``):
+                Required in ``kwargs``. Diagonal regulariser in Woodbury inverse.
 
         Returns:
-            precon: Array (n, n)
-                Approximate inverse :math:`(K + \eta I)^{-1}` constructed via weighted  Nyström sampling and Woodbury identity.
+            Array:
+                A shape ``(n,n)`` preconditioner - an approximate inverse :math:`(K + \eta I)^{-1}` constructed via weighted Nyström sampling and Woodbury identity.
         """
         # ---------- kwargs & sanity checks -----------------------------
         m = kwargs.get("m")
@@ -300,51 +348,60 @@ class NystromDiagonal(Preconditioner):
             matrix_woodbury, max_cond_number=max_cond_number
         )
 
-        # Final preconditioner via Woodbury identity
-        # Precon ≈ (K + nugget * I)^{-1} ≈ (I - K_nm @ matrix_woodbury_inv @ K_mn) / nugget
-        eye = jnp.eye(n)
-        precon = (eye - K_nm @ matrix_woodbury_inv @ K_mn) / nugget
+        if full_mat is True:
+            # Final preconditioner via Woodbury identity
+            # Precon ≈ (K + nugget * I)^{-1} ≈ (I - K_nm @ matrix_woodbury_inv @ K_mn) / nugget
+            eye = jnp.eye(n)
+            precon = (eye - K_nm @ matrix_woodbury_inv @ K_mn) / nugget
 
-        return precon
+            return precon
+        else:
+            return LowRankWoodbury(K_nm, matrix_woodbury_inv, nugget)
 
-
-class RandomisedSVD(Preconditioner):
+class RandomisedEVD(Preconditioner):
     r"""
-    Computes a low-rank Woodbury inverse preconditioner using Randomized SVD with power iterations.
+    An implementation of Algorithm 5.5 from Halko et. al. :cite:`halko2011finding`. Computes a low-rank Woodbury inverse preconditioner using Randomised
+    Eigenvalue Decomposition (EVD) with power iterations.
 
-    This approximates :math:`(K + \eta I)^{-1}` via a randomized SVD to get the dominant subspace,
-    and then applies the Woodbury formula for efficient approximate inversion. Assumes K is symmetric or PSD.
+    This approximates :math:`(\mathbf{K} + \eta \mathbf{I})^{-1}` via power itrations to get the dominant subspace, uses and eigenvalue
+    decomposition to form the low-rank approximation, and then applies the Woodbury formula for efficient approximate inversion.
+    Assumes :math:`\mathbf{K}` is symmetric and PSD.
     """
 
-    name: str = "RandomisedSVD"
+    name: str = "RandomisedEVD"
     display_name: str = "Randomised Nyström EVD"
 
-    def __call__(self, key: Array, matrix: Array, **kwargs) -> Array:
-        """
-        Construct a randomized SVD-based Woodbury preconditioner.
+    def __call__(self, key: Array, matrix: Array, full_mat: bool = True, **kwargs) -> Array | LowRankWoodbury:
+        r"""
+        Construct a randomised EVD-based Woodbury preconditioner.
 
         Args:
-            key: Array
-                Random key for reproducibility in random projection.
-            matrix: Array (n, n)
-                Symmetric matrix to be preconditioned.
-            m: int, required in kwargs
-                Target rank of the approximation.
-            nugget: float, required in kwargs.
-                Diagonal regulariser in Woodbury inverse.
-            return_mat_and_precon: bool (default False)
+            key:
+                JAX random key used in random projection.
+            matrix:
+                Symmetric matrix to be preconditioned. Shape ``(n, n)``.
+            full_mat:
+                If ``True`` returns the full shape ``(n,n)`` approximate inverse.
+                If ``False``, return only the Woodbury‐form low‐rank components
+                needed to apply the inverse in :math:`O(n m + m^2)` time and :math:`O(n m)` memory.
+            m (``int``):
+                Required in ``kwargs``. Target rank of the approximation.
+            nugget (``float``):
+                Required in ``kwargs``. Diagonal regulariser in Woodbury inverse.
+            return_mat_and_precon (``bool``):
                 Whether to return both the approximated matrix and its preconditioner (approximate inverse).
-                If True, the function returns a tuple `(preconditioner, matrix_approx)`; otherwise, only the preconditioner.
-            n_iter: int, optional in kwargs
-                Number of power iterations (default 2).
-            tau: float, optional in kwargs
-                Tikhonov regularisation parameter for the inversion of eigenvalues (default 0.0).
-            max_cond_number: float, optional
-                Maximum allowed condition number for pseudoinverse (default 1e14).
+                If ``True``, returns a tuple ``(preconditioner, matrix_approx)``.
+                If ``False`` (default behaviour), returns only ``preconditioner``.
+            n_iter (``int``):
+                Optional in ``kwargs``. Number of power iterations. Defaults to ``2``.
+            tau (``float``):
+                Optional in ``kwargs``. Tikhonov regularisation parameter for the inversion of eigenvalues (default ``0.0``).
+            max_cond_number (``float``):
+                Maximum allowed condition number for pseudoinverse. Defaults to ``1e14``.
 
         Returns:
             Array:
-                Approximate inverse (K + nugget * I)^{-1} constructed via randomized SVD and the Woodbury identity.
+                Approximate inverse :math:`(\mathbf{K} + \eta \mathbf{I})^{-1}` constructed via randomised EVD and the Woodbury identity.
         """
         # ---------- kwargs & sanity checks -----------------------------
         m = kwargs.get("m")
@@ -359,8 +416,7 @@ class RandomisedSVD(Preconditioner):
         if nugget is None:
             raise ValueError("keyword `nugget` (jitter) is required")
 
-        # ---------- ensure symmetry ------------------------------------
-        K = (matrix + matrix.T) / 2  # Ensure symmetry
+        K = matrix  
         n = matrix.shape[0]
 
         # ---------- range find -----------------------------------------
@@ -400,39 +456,60 @@ class RandomisedSVD(Preconditioner):
         middle = nugget * Lambda_inv + jnp.eye(U.shape[1])  #  σΛ⁻¹ + I
         middle_inv = self.spectral_pinv(middle, max_cond_number)
 
-        eye = jnp.eye(n)
-        precon = (eye / nugget) - (U @ middle_inv @ U.T) / nugget
+        if full_mat is True:
+            eye = jnp.eye(n)
+            precon = (eye / nugget) - (U @ middle_inv @ U.T) / nugget
 
-        if return_mat_and_precon is True:
-            K_approx = U @ Lambda @ U
-            return precon, K_approx
+            if return_mat_and_precon is True:
+                K_approx = U @ Lambda @ U
+                return precon, K_approx
 
-        return precon
+            return precon
+        else:
+            return LowRankWoodbury(U, middle_inv, nugget)
 
+@dataclass(frozen=True)
+class LowRankFITC:
+    r"""
+    Implements :math:`P = \Lambda^{-1} - \Lambda^{-1} K_{nm} W K_{nm}^\top \Lambda^{-1}`.
+    On vectors ``v`` this is :math:`P \, v`.
+    """
+    K_nm: jnp.ndarray
+    W: jnp.ndarray
+    lambda_inv: jnp.ndarray
+    __array_priority__ = 10.0
+    def __matmul__(self, v):   
+        lv = self.lambda_inv * v
+        t  = self.K_nm.T @ lv
+        u  = self.W @ t
+        z  = self.K_nm   @ u
+        return lv - z
 
 class FITC(Preconditioner):
-    """Fully–Independent Training Conditional (FITC) pre-conditioner."""
+    r"""
+    Implementation of Fully–Independent Training Conditional (FITC) preconditioner from :cite:`quinonero2005unifying`.
+    """
 
     name: str = "FITC"
     display_name: str = "FITC"
 
-    def __call__(self, key: Array, matrix: Array, **kwargs) -> Array:
-        """
+    def __call__(self, key: Array, matrix: Array, full_mat: bool = True, **kwargs) -> Array | LowRankFITC:
+        r"""
         Constructs a preconditioner using the FITC (Fully Independent Training Conditional) approximation.
 
         Args:
-            key: Array
-                Random key for reproducibility in random projection.
-            matrix: Array (n, n)
-                Symmetric matrix to be preconditioned.
-            m (int): required in kwargs.
-                Number of inducing points (required).
-            nugget (float): required in kwargs.
-                Diagonal regulariser in Woodbury inverse.
-            indices (Array or list of int, optional):
-                Explicit array of inducing indices to use. If not provided, indices are selected using `key`.
-            max_cond_number: float, optional
-                Maximum allowed condition number for pseudoinverse (default 1e14).
+            key:
+                Random key used in choice of inducing points. Ignored if ``indices`` are provided.
+            matrix:
+                Symmetric matrix to be preconditioned. Shape: ``(n,n)``.
+            m (``int``):
+                Required in ``kwargs``. The number of inducing points to use - the rank of the approximation.
+            nugget (``float``):
+                Required in ``kwargs``. Diagonal regulariser in Woodbury inverse.
+            indices (``Array`` or ``list[int]``):
+                Explicit array of inducing indices to use. If not provided, indices are generated randomly using ``key``.
+            max_cond_number (``float``):
+                Maximum allowed condition number for pseudoinverse. Defaults to ``1e14``.
 
         Returns:
             Array:
@@ -471,8 +548,10 @@ class FITC(Preconditioner):
         M_inv = self.spectral_pinv(M, max_cond_number=max_cond_number)
 
         # ---------- FITC inverse via Woodbury --------------------------
-        return Lambda_inv - Lambda_inv @ (K_nm @ M_inv @ K_mn) @ Lambda_inv
-
+        if full_mat is True:
+            return Lambda_inv - Lambda_inv @ (K_nm @ M_inv @ K_mn) @ Lambda_inv
+        else:
+            return LowRankFITC(K_nm, M_inv, jnp.diag(Lambda_inv))
 
 class BlockJacobi(Preconditioner):
 
@@ -480,19 +559,19 @@ class BlockJacobi(Preconditioner):
     display_name: str = "Block Jacobi"
 
     def __call__(self, key: Array, matrix: Array, **kwargs: Any) -> Array:
-        """
+        r"""
         Constructs a preconditioner using the Block Jacobi approximation, where the
         matrix is partitioned into diagonal blocks and each is inverted separately.
 
         Args:
-            key (Array):
+            key:
                 JAX PRNG key (ignored, included for API consistency).
-            matrix (Array):
-                Symmetric positive semi-definite matrix of shape (n, n) to precondition.
-            block_size (int, keyword-only):
-                Size of the diagonal blocks used in the Jacobi approximation (required).
-            max_cond_number: float, optional
-                Maximum allowed condition number for pseudoinverse (default 1e14).
+            matrix:
+                Symmetric PSD matrix of shape ``(n, n)`` to precondition.
+            block_size (``int``):
+                Required by ``kwargs``. Size of the diagonal blocks used in the Jacobi approximation.
+            max_cond_number (``float``):
+                Maximum allowed condition number for pseudoinverse. Defaults to ``1e14``.
 
         Returns:
             Array:

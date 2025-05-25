@@ -1,8 +1,11 @@
 import functools
 import jax, jax.numpy as jnp
-from jax import jit, vmap, Array
-from typing import Optional, Any
+from jax import jit, vmap, Array, lax
+from typing import Optional, Any, Callable, Tuple
 from functools import partial
+from dataclasses import dataclass
+
+from pcg_stein.linear import LinearOperator
 
 
 class Kernel:
@@ -10,48 +13,55 @@ class Kernel:
 
     # radial profile and its two helpers — must be provided by subclass
     @staticmethod
-    def _phi(r, **hyper):
+    def _phi(r: Array, **hyper):
         raise NotImplementedError  # ϕ(r)
 
     @staticmethod
-    def _psi(r, **hyper):
+    def _psi(r: Array, **hyper):
         raise NotImplementedError  # ϕ′(r)/r  (finite at 0)
 
     @staticmethod
-    def _phi_pp(r, **hyper):
+    def _phi_pp(r: Array, **hyper):
         raise NotImplementedError  # ϕ″(r)
 
-    def _pair(self, x: Array, y: Array, **hyper: Any) -> Array:
+    def _pair(self, x: Array, y: Array, **hyper: float) -> Array:
         """
         Evaluates the base kernel function between two samples.
 
         Args:
-            x (Array): A single sample of shape (d,).
-            y (Array): A single sample of shape (d,).
-            **hyper (Any): Additional kernel hyperparameters.
+            x:
+                A single sample of shape ``(d,)``.
+            y:
+                A single sample of shape ``(d,)``.
+            **hyper:
+                Additional kernel hyperparameters.
 
         Returns:
-            Array: A scalar representing the kernel evaluation between x and y.
+            Array:
+                A scalar representing the kernel evaluation between x and y.
         """
         r = jnp.linalg.norm(x - y)
         return self._phi(r, **hyper)
 
-    def __call__(self, X: Array, Y: Optional[Array] = None, **hyper: Any) -> Array:
+    def __call__(self, X: Array, Y: Optional[Array] = None, **hyper: float) -> Array:
         """
         Evaluates the base kernel or its Gram matrix.
 
-        If `Y` is not provided, computes the Gram matrix `K(X, X)` between all pairs in `X`.
-        If `Y` is provided, computes the cross Gram matrix `K(X, Y)`.
+        If ``Y`` is not provided, computes the Gram matrix ``K(X, X)`` between all pairs in ``X``.
+        If ``Y`` is provided, computes the cross Gram matrix ``K(X, Y)``.
 
         Args:
-            X (Array): An (n × d) array of input samples.
-            Y (Optional[Array], optional): An (m × d) array of input samples.
-                If None, defaults to `X`. Defaults to None.
-            **hyper (Any): Additional kernel hyperparameters.
+            X:
+                An shape ``(n,d)`` array of input samples.
+            Y:
+                A shape ``(m,d)`` array of input samples. If None, defaults to ``X``.
+            **hyper:
+                Additional kernel hyperparameters.
 
         Returns:
-            Array: The (n × m) Gram matrix of base kernel evaluations, or a scalar
-            if both `X` and `Y` are single points.
+            Array:
+                The shape ``(n,m)`` Gram matrix of base kernel evaluations, or a scalar
+                if both `X` and `Y` are single points.
         """
         if Y is None:
             Y = X
@@ -74,14 +84,20 @@ class Kernel:
         Computes the pairwise Stein kernel entry between two points.
 
         Args:
-            x (Array): A single sample of shape (d,).
-            y (Array): A single sample of shape (d,).
-            s_x (Array): Score function evaluated at x of shape (d,).
-            s_y (Array): Score function evaluated at y of shape (d,).
-            **hyper (Any): Additional kernel hyperparameters.
+            x:
+                A single sample of shape ``(d,)``.
+            y:
+                A single sample of shape ``(d,)``.
+            s_x:
+                Score function evaluated at x of shape ``(d,)``.
+            s_y:
+                Score function evaluated at y of shape ``(d,)``.
+            **hyper:
+                Additional kernel hyperparameters.
 
         Returns:
-            Array: A scalar representing the Stein kernel between x and y.
+            Array:
+                The scalar Stein kernel evaluation at ``x`` and ``y``.
         """
         diff = x - y
         r = jnp.linalg.norm(diff)
@@ -109,19 +125,25 @@ class Kernel:
         """
         Computes the Stein kernel Gram matrix between two sets of samples.
 
-        This returns an (n × m) block matrix, where each entry corresponds to a
+        This returns an ``(n,m)`` block matrix, where each entry corresponds to a
         Stein kernel evaluation between points from X and Y with associated scores
         Sx and Sy, using the given kernel and hyperparameters.
 
         Args:
-            X (Array): An (n × d) array of samples.
-            Y (Array): An (m × d) array of samples.
-            Sx (Array): An (n × d) array of score function evaluations for X.
-            Sy (Array): An (m × d) array of score function evaluations for Y.
-            **hyper (Any): Additional kernel hyperparameters.
+            X:
+                A shape ``(n, d)`` array of samples.
+            Y:
+                A shape ``(m, d)`` array of samples.
+            Sx:
+                A shape ``(n, d)`` array of score function evaluations at ``X``.
+            Sy:
+                A shape ``(m, d)`` array of score function evaluations at ``Y``.
+            **hyper:
+                Additional kernel hyperparameters.
 
         Returns:
-            Array: An (n × m) Gram matrix of Stein kernel evaluations.
+            Array:
+                A shape ``(n,m)`` Gram matrix of Stein kernel evaluations.
         """
         stein_pair = functools.partial(self._stein_pair, **hyper)
 
@@ -129,6 +151,37 @@ class Kernel:
             lambda x, sx: jax.vmap(lambda y, sy: stein_pair(x, y, sx, sy))(Y, Sy)
         )(X, Sx)
 
+    @functools.partial(
+        jit,
+        static_argnums=(0,),  # self is arg 0 → static
+        static_argnames=("lengthscale", "amplitude"),
+    )
+    def stein_matvec(
+        self,
+        v: Array,  # shape (n,)
+        X: Array,  # shape (n,d)
+        Sx: Array,  # shape (n,d)
+        *,
+        lengthscale: float = 1.,
+        amplitude: float = 1.
+    ) -> Array:
+        """
+        Matrix‐free mat‐vec for the Stein kernel:
+            (K @ v)[i] = sum_j k_p(x_i, x_j) * v[j]
+        without ever forming the full K.
+        """
+        # bind the hyper‐parameters into the pairwise function
+        stein_pair = functools.partial(self._stein_pair, lengthscale=lengthscale, amplitude=amplitude)
+
+        # for a fixed i, compute the i-th row of K dot v:
+        def row_dot(x_i, sx_i):
+            # shape (n,) of row i
+            K_i = vmap(lambda x_j, sx_j: stein_pair(x_i, x_j, sx_i, sx_j))(X, Sx)
+            # then dot with v
+            return jnp.dot(K_i, v)
+
+        # vectorise over i=0..n-1
+        return vmap(row_dot)(X, Sx)
 
 class Matern52Kernel(Kernel):
     name: str = "Matern52"
@@ -151,12 +204,12 @@ class Matern52Kernel(Kernel):
         where :math:`\sigma^2` is the amplitude and :math:`\ell` is the lengthscale.
 
         Args:
-            r (Array):
-                Pairwise Euclidean distance of shape (1,).
-            lengthscale (float, optional):
-                Lengthscale parameter :math:`\ell>0`. Defaults to 1.0.
-            amplitude (float, optional):
-                Amplitude parameter :math:`\sigma^2>0`. Defaults to 1.0.
+            r:
+                Pairwise Euclidean distance of shape ``(1,)``.
+            lengthscale:
+                Lengthscale parameter :math:`\ell>0`.
+            amplitude:
+                Amplitude parameter :math:`\sigma^2>0`.
 
         Returns:
             Array:
@@ -182,12 +235,12 @@ class Matern52Kernel(Kernel):
         where :math:`\sigma^{2}` is the amplitude and :math:`\ell` is the lengthscale.
 
         Args:
-            r (Array):
-                Euclidean distance of shape (1,). Must represent a single scalar value.
-            lengthscale (float, optional):
-                Lengthscale parameter :math:`\ell>0`. Defaults to 1.0.
-            amplitude (float, optional):
-                Amplitude parameter :math:`\sigma^2>0`. Defaults to 1.0.
+            r:
+                Euclidean distance of shape ``(1,)``. Must represent a single scalar value.
+            lengthscale:
+                Lengthscale parameter :math:`\ell>0`.
+            amplitude::
+                Amplitude parameter :math:`\sigma^2>0`.
 
         Returns:
             Array:
@@ -213,12 +266,12 @@ class Matern52Kernel(Kernel):
         where :math:`\sigma^{2}` is the amplitude and :math:`\ell` is the lengthscale.
 
         Args:
-            r (Array):
-                Euclidean distance of shape (1,). Must represent a single scalar value.
-            lengthscale (float, optional):
-                Lengthscale parameter :math:`\ell>0`. Defaults to 1.0.
-            amplitude (float, optional):
-                Amplitude parameter :math:`\sigma^2>0`. Defaults to 1.0.
+            r:
+                Euclidean distance of shape ``(1,)``. Must represent a single scalar value.
+            lengthscale:
+                Lengthscale parameter :math:`\ell>0`.
+            amplitude:
+                Amplitude parameter :math:`\sigma^2>0`.
 
         Returns:
             Array:
@@ -242,7 +295,7 @@ class Matern52Kernel(Kernel):
         Sy: Array,
         *,
         lengthscale: float = 1.0,
-        amplitude: float = 1.0,
+        amplitude: float = 1.0
     ) -> Array:
         stein_pair = functools.partial(
             self._stein_pair, lengthscale=lengthscale, amplitude=amplitude
@@ -252,20 +305,28 @@ class Matern52Kernel(Kernel):
             lambda x, sx: jax.vmap(lambda y, sy: stein_pair(x, y, sx, sy))(Y, Sy)
         )(X, Sx)
 
+
+    @functools.partial(
+        jit,
+        static_argnums=(0,),  # self is arg 0 → static
+        static_argnames=("lengthscale", "amplitude"),
+    )
     def stein_matvec(
         self,
-        v: jnp.ndarray,  # shape (n,)
-        X: jnp.ndarray,  # shape (n,d)
-        Sx: jnp.ndarray,  # shape (n,d)
-        **hyper,
-    ) -> jnp.ndarray:
+        v: Array,  # shape (n,)
+        X: Array,  # shape (n,d)
+        Sx: Array,  # shape (n,d)
+        *,
+        lengthscale: float = 1.,
+        amplitude: float = 1.
+    ) -> Array:
         """
         Matrix‐free mat‐vec for the Stein kernel:
             (K @ v)[i] = sum_j k_p(x_i, x_j) * v[j]
         without ever forming the full K.
         """
         # bind the hyper‐parameters into the pairwise function
-        stein_pair = functools.partial(self._stein_pair, **hyper)
+        stein_pair = functools.partial(self._stein_pair, lengthscale=lengthscale, amplitude=amplitude)
 
         # for a fixed i, compute the i-th row of K dot v:
         def row_dot(x_i, sx_i):
@@ -276,7 +337,6 @@ class Matern52Kernel(Kernel):
 
         # vectorise over i=0..n-1
         return vmap(row_dot)(X, Sx)
-
 
 class Matern72Kernel(Kernel):
     name: str = "Matern72"
@@ -299,12 +359,12 @@ class Matern72Kernel(Kernel):
         where :math:`\sigma^2` is the amplitude and :math:`\ell` is the lengthscale.
 
         Args:
-            r (Array):
-                Euclidean distance of shape (1,). Must represent a single scalar value.
-            lengthscale (float, optional):
-                Lengthscale parameter :math:`\ell>0`. Defaults to 1.0.
-            amplitude (float, optional):
-                Amplitude parameter :math:`\sigma^2>0`. Defaults to 1.0.
+            r:
+                Euclidean distance of shape ``(1,)``. Must represent a single scalar value.
+            lengthscale:
+                Lengthscale parameter :math:`\ell>0`.
+            amplitude:
+                Amplitude parameter :math:`\sigma^2>0`.
 
         Returns:
             Array:
@@ -333,12 +393,12 @@ class Matern72Kernel(Kernel):
         where :math:`\sigma^{2}` is the amplitude and :math:`\ell` is the lengthscale.
 
         Args:
-            r (Array):
-                Euclidean distance of shape (1,). Must represent a single scalar value.
-            lengthscale (float, optional):
-                Lengthscale parameter :math:`\ell>0`. Defaults to 1.0.
-            amplitude (float, optional):
-                Amplitude parameter :math:`\sigma^2>0`. Defaults to 1.0.
+            r:
+                Euclidean distance of shape ``(1,)``. Must represent a single scalar value.
+            lengthscale:
+                Lengthscale parameter :math:`\ell>0`.
+            amplitude:
+                Amplitude parameter :math:`\sigma^2>0`.
 
         Returns:
             Array:
@@ -371,12 +431,12 @@ class Matern72Kernel(Kernel):
         where :math:`\sigma^{2}` is the amplitude and :math:`\ell` is the lengthscale.
 
         Args:
-            r (Array):
-                Euclidean distance of shape (1,). Must represent a single scalar value.
-            lengthscale (float, optional):
-                Lengthscale parameter :math:`\ell>0`. Defaults to 1.0.
-            amplitude (float, optional):
-                Amplitude parameter :math:`\sigma^2>0`. Defaults to 1.0.
+            r:
+                Euclidean distance of shape ``(1,)``. Must represent a single scalar value.
+            lengthscale:
+                Lengthscale parameter :math:`\ell>0`.
+            amplitude:
+                Amplitude parameter :math:`\sigma^2>0`.
 
         Returns:
             Array:
@@ -415,6 +475,37 @@ class Matern72Kernel(Kernel):
             lambda x, sx: jax.vmap(lambda y, sy: stein_pair(x, y, sx, sy))(Y, Sy)
         )(X, Sx)
 
+    @functools.partial(
+        jit,
+        static_argnums=(0,),  # self is arg 0 → static
+        static_argnames=("lengthscale", "amplitude"),
+    )
+    def stein_matvec(
+        self,
+        v: Array,  # shape (n,)
+        X: Array,  # shape (n,d)
+        Sx: Array,  # shape (n,d)
+        *,
+        lengthscale: float = 1.,
+        amplitude: float = 1.
+    ) -> Array:
+        """
+        Matrix‐free mat‐vec for the Stein kernel:
+            (K @ v)[i] = sum_j k_p(x_i, x_j) * v[j]
+        without ever forming the full K.
+        """
+        # bind the hyper‐parameters into the pairwise function
+        stein_pair = functools.partial(self._stein_pair, lengthscale=lengthscale, amplitude=amplitude)
+
+        # for a fixed i, compute the i-th row of K dot v:
+        def row_dot(x_i, sx_i):
+            # shape (n,) of row i
+            K_i = vmap(lambda x_j, sx_j: stein_pair(x_i, x_j, sx_i, sx_j))(X, Sx)
+            # then dot with v
+            return jnp.dot(K_i, v)
+
+        # vectorise over i=0..n-1
+        return vmap(row_dot)(X, Sx)
 
 class GaussianKernel(Kernel):
     name: str = "Gaussian"
@@ -435,12 +526,12 @@ class GaussianKernel(Kernel):
         where :math:`\sigma^2` is the amplitude and :math:`\ell` is the lengthscale.
 
         Args:
-            r (Array):
-                Euclidean distance of shape (1,). Must represent a single scalar value.
-            lengthscale (float, optional):
-                Lengthscale parameter :math:`\ell>0`. Defaults to 1.0.
-            amplitude (float, optional):
-                Amplitude parameter :math:`\sigma^2>0`. Defaults to 1.0.
+            r:
+                Euclidean distance of shape ``(1,)``. Must represent a single scalar value.
+            lengthscale:
+                Lengthscale parameter :math:`\ell>0`.
+            amplitude::
+                Amplitude parameter :math:`\sigma^2>0`.
 
         Returns:
             Array:
@@ -464,12 +555,12 @@ class GaussianKernel(Kernel):
         where :math:`\sigma^2` is the amplitude and :math:`\ell` is the lengthscale.
 
         Args:
-            r (Array):
-                Euclidean distance of shape (1,). Must represent a single scalar value.
-            lengthscale (float, optional):
-                Lengthscale parameter :math:`\ell>0`. Defaults to 1.0.
-            amplitude (float, optional):
-                Amplitude parameter :math:`\sigma^2>0`. Defaults to 1.0.
+            r:
+                Euclidean distance of shape ``(1,)``. Must represent a single scalar value.
+            lengthscale:
+                Lengthscale parameter :math:`\ell>0`.
+            amplitude::
+                Amplitude parameter :math:`\sigma^2>0`.
 
         Returns:
             Array:
@@ -497,12 +588,12 @@ class GaussianKernel(Kernel):
         where :math:`\sigma^2` is the amplitude and :math:`\ell` is the lengthscale.
 
         Args:
-            r (Array):
-                Euclidean distance of shape (1,). Must represent a single scalar value.
-            lengthscale (float, optional):
-                Lengthscale parameter :math:`\ell>0`. Defaults to 1.0.
-            amplitude (float, optional):
-                Amplitude parameter :math:`\sigma^2>0`. Defaults to 1.0.
+            r:
+                Euclidean distance of shape ``(1,)``. Must represent a single scalar value.
+            lengthscale:
+                Lengthscale parameter :math:`\ell>0`.
+            amplitude::
+                Amplitude parameter :math:`\sigma^2>0`.
 
         Returns:
             Array:
@@ -534,7 +625,38 @@ class GaussianKernel(Kernel):
         return jax.vmap(
             lambda x, sx: jax.vmap(lambda y, sy: stein_pair(x, y, sx, sy))(Y, Sy)
         )(X, Sx)
+    
+    @functools.partial(
+        jit,
+        static_argnums=(0,),  # self is arg 0 → static
+        static_argnames=("lengthscale", "amplitude"),
+    )
+    def stein_matvec(
+        self,
+        v: Array,  # shape (n,)
+        X: Array,  # shape (n,d)
+        Sx: Array,  # shape (n,d)
+        *,
+        lengthscale: float = 1.,
+        amplitude: float = 1.
+    ) -> Array:
+        """
+        Matrix‐free mat‐vec for the Stein kernel:
+            (K @ v)[i] = sum_j k_p(x_i, x_j) * v[j]
+        without ever forming the full K.
+        """
+        # bind the hyper‐parameters into the pairwise function
+        stein_pair = functools.partial(self._stein_pair, lengthscale=lengthscale, amplitude=amplitude)
 
+        # for a fixed i, compute the i-th row of K dot v:
+        def row_dot(x_i, sx_i):
+            # shape (n,) of row i
+            K_i = vmap(lambda x_j, sx_j: stein_pair(x_i, x_j, sx_i, sx_j))(X, Sx)
+            # then dot with v
+            return jnp.dot(K_i, v)
+
+        # vectorise over i=0..n-1
+        return vmap(row_dot)(X, Sx)
 
 class IMQKernel(Kernel):
     name: str = "IMQ"
@@ -564,14 +686,14 @@ class IMQKernel(Kernel):
         and :math:`\gamma`, :math:`\beta` are additional hyperparameters.
 
         Args:
-            r (Array):
-                Euclidean distance of shape (1,). Must represent a single scalar value.
-            lengthscale (float, optional):
-                Lengthscale parameter :math:`\ell > 0`. Defaults to 1.0.
-            amplitude (float, optional):
-                Amplitude parameter :math:`\sigma^{2} > 0`. Defaults to 1.0.
+            r:
+                Euclidean distance of shape ``(1,)``. Must represent a single scalar value.
+            lengthscale:
+                Lengthscale parameter :math:`\ell > 0`.
+            amplitude::
+                Amplitude parameter :math:`\sigma^{2} > 0`.
             gamma (float, optional):
-                Offset parameter :math:`\gamma > 0`. Controls the flatness of the kernel. Defaults to 1.0.
+                Offset parameter :math:`\gamma > 0`. Controls the flatness of the kernel.
             beta (float, optional):
                 Exponent parameter :math:`\beta \in (0, 1)`. Controls the decay rate. Defaults to 0.5.
 
@@ -609,16 +731,16 @@ class IMQKernel(Kernel):
         and :math:`\gamma`, :math:`\beta` are additional hyperparameters.
 
         Args:
-            r (Array):
-                Euclidean distance of shape (1,). Must represent a single scalar value.
-            lengthscale (float, optional):
-                Lengthscale parameter :math:`\ell > 0`. Defaults to 1.0.
-            amplitude (float, optional):
-                Amplitude parameter :math:`\sigma^{2} > 0`. Defaults to 1.0.
-            gamma (float, optional):
-                Offset parameter :math:`\gamma > 0`. Controls the flatness of the kernel. Defaults to 1.0.
-            beta (float, optional):
-                Exponent parameter :math:`\beta \in (0, 1)`. Controls the decay rate. Defaults to 0.5.
+            r:
+                Euclidean distance of shape ``(1,)``. Must represent a single scalar value.
+            lengthscale:
+                Lengthscale parameter :math:`\ell > 0`.
+            amplitude::
+                Amplitude parameter :math:`\sigma^{2} > 0`.
+            gamma:
+                Offset parameter :math:`\gamma > 0`. Controls the flatness of the kernel.
+            beta:
+                Exponent parameter :math:`\beta \in (0, 1)`. Controls the decay rate.
 
         Returns:
             Array:
@@ -655,15 +777,15 @@ class IMQKernel(Kernel):
         and :math:`\gamma`, :math:`\beta` are additional hyperparameters.
 
         Args:
-            r (Array):
-                Euclidean distance of shape (1,). Must represent a single scalar value.
-            lengthscale (float, optional):
-                Lengthscale parameter :math:`\ell > 0`. Defaults to 1.0.
-            amplitude (float, optional):
-                Amplitude parameter :math:`\sigma^{2} > 0`. Defaults to 1.0.
-            gamma (float, optional):
-                Offset parameter :math:`\gamma > 0`. Controls the flatness of the kernel. Defaults to 1.0.
-            beta (float, optional):
+            r:
+                Euclidean distance of shape ``(1,)``. Must represent a single scalar value.
+            lengthscale:
+                Lengthscale parameter :math:`\ell > 0`.
+            amplitude::
+                Amplitude parameter :math:`\sigma^{2} > 0`.
+            gamma:
+                Offset parameter :math:`\gamma > 0`. Controls the flatness of the kernel.
+            beta:
                 Exponent parameter :math:`\beta \in (0, 1)`. Controls the decay rate. Defaults to 0.5.
 
         Returns:
@@ -709,3 +831,43 @@ class IMQKernel(Kernel):
         return jax.vmap(
             lambda x, sx: jax.vmap(lambda y, sy: stein_pair(x, y, sx, sy))(Y, Sy)
         )(X, Sx)
+
+
+    @functools.partial(
+        jit,
+        static_argnums=(0,),  
+        static_argnames=("lengthscale", "amplitude", "gamma", "beta"),
+    )    
+    def stein_matvec(
+        self,
+        v: Array,  # shape (n,)
+        X: Array,  # shape (n,d)
+        Sx: Array,  # shape (n,d)
+        *,
+        lengthscale: float = 1.,
+        amplitude: float = 1.,
+        gamma: float = 1.0,
+        beta: float = 0.5
+    ) -> Array:
+        """
+        Matrix‐free mat‐vec for the Stein kernel:
+            (K @ v)[i] = sum_j k_p(x_i, x_j) * v[j]
+        without ever forming the full K.
+        """
+        # bind the hyper‐parameters into the pairwise function
+        stein_pair = functools.partial(
+            self._stein_pair,
+            lengthscale=lengthscale,
+            amplitude=amplitude,
+            gamma=gamma,
+            beta=beta,
+        )
+        # for a fixed i, compute the i-th row of K dot v:
+        def row_dot(x_i, sx_i):
+            # shape (n,) of row i
+            K_i = vmap(lambda x_j, sx_j: stein_pair(x_i, x_j, sx_i, sx_j))(X, Sx)
+            # then dot with v
+            return jnp.dot(K_i, v)
+
+        # vectorise over i=0..n-1
+        return vmap(row_dot)(X, Sx)

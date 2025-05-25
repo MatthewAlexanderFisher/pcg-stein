@@ -15,21 +15,35 @@ def parse_args():
         default=True,
         help="Use CPU or GPU boolean (defaults to True: use CPU)",
     )
-    p.add_argument("-c", "--config", type=str, default="experiment.yaml")
+    p.add_argument(
+        "-c",
+        "--config",
+        type=str,
+        default="experiment.yaml",
+        help="Path to the YAML configuration file.",
+    )
+    p.add_argument(
+        "-s",
+        "--stem",
+        type=str,
+        default="fig1",
+        help="Base name (stem) for the output PDF saved to the results/ directory.",
+    )
     return p.parse_args()
 
 
 args = parse_args()
 use_cpu = args.cpu  # Boolean True means use CPU (Default)
 config_path = args.config  # Path to experiment config file
+stem = args.stem  # Base name for output PDF
 
 if use_cpu:
     os.environ["JAX_PLATFORM_NAME"] = "cpu"
-    
+
     # Tell XLA/Eigen to multi-thread on CPU
-    os.environ["XLA_FLAGS"]         = "--xla_cpu_multi_thread_eigen=true intrasession=true"
-    os.environ["OMP_NUM_THREADS"]   = "16"   # or however many cores you want
-    os.environ["MKL_NUM_THREADS"]   = "16"
+    os.environ["XLA_FLAGS"] = "--xla_cpu_multi_thread_eigen=true intrasession=true"
+    os.environ["OMP_NUM_THREADS"] = "16"  # or however many cores you want
+    os.environ["MKL_NUM_THREADS"] = "16"
 
 
 import jax, jax.numpy as jnp
@@ -107,12 +121,11 @@ def process_one_rep(args_tuple):
         # compute reference worst-case error
         _, _, _, wces = pcg_ref(K, b)
         wce_reference = float(wces[-1])  # final worse-case error
-        wce_tol = wce_reference * WCE_MUL
+        wce_tol = wce_reference * WCE_MUL  # worst-case error tolerance
 
-        # perform reference CG
-        x_cg, m_cg, res_cg, wce_cg = pcg(
-            K, b, rtol=0.0, atol=0.0, wce_tol=wce_tol, maxiter=MAXITER
-        )
+        # compute CG's m_cg value (no need to rerun CG)
+        mask = wces <= wce_tol
+        m_cg = int(jnp.argmax(mask)) + 1  # m_cg
 
         precon_pbar = tqdm(precon_list, position=2, leave=False)
         for precon in precon_pbar:
@@ -191,8 +204,7 @@ for item in tqdm(rep_data, desc="Replicates"):
 
 # --------------- Save output -----------------
 
-save_name = 'fig1'
 outdir = Path("results")
 outdir.mkdir(exist_ok=True)
-pd.DataFrame(results).to_csv(outdir / f"{save_name}.csv", index=False)
-print(f"Saved results/{save_name}.csv")
+pd.DataFrame(results).to_csv(outdir / f"{stem}.csv", index=False)
+print(f"Saved results/{stem}.csv")

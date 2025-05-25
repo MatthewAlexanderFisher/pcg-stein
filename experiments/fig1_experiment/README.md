@@ -3,8 +3,8 @@
 This experiment varies the kernel lengthscale over 5 values and preconditioner parameters over 5 values and compares the iteration counts of CG vs. various PCG preconditioners.
 
 - **Config**: See `config.yaml`
-- **Reproduce**: Run `python run.py` - can also `python run_workers -b=4` to do batched computation.
-- **Main metric**: $m_CG / m_PCG$ (iteration count ratio)
+- **Reproduce**: Run `python run.py` or `python run_batch.py` to run batched PCG (batches the 5 different preconditioner parameter values). 
+- **Main metrics**: Comparisons of $m_{\text{CG}}$ and $m_{{PCG}}$ (gain)
 - **Output**: Results saved in `results/*.csv`
 
 Used in: **Figure 1** of the paper.

@@ -1,3 +1,8 @@
+# experiment large files
+
+experiments/fig6_experiment/results/*.csv
+
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -25,6 +30,7 @@ share/python-wheels/
 .installed.cfg
 *.egg
 MANIFEST
+*.egg-info
 
 # PyInstaller
 #  Usually these files are written by a python script from a template

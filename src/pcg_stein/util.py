@@ -1,6 +1,7 @@
 import jax, jax.numpy as jnp
 from jax import Array
 import matplotlib.pyplot as plt
+from matplotlib.lines import Line2D
 import seaborn as sns
 import numpy as np
 from typing import Optional, Any
@@ -9,6 +10,7 @@ from pcg_stein.pcg import pcg
 from pcg_stein.distribution import Distribution
 from pcg_stein.kernel import Kernel
 from pcg_stein.precon import Preconditioner
+from pcg_stein.registry import PRECON_REGISTRY
 
 
 def est_err(w, K):
@@ -18,6 +20,136 @@ def est_err(w, K):
     qdr = jnp.dot(jnp.dot(K, w), w)
     denominator = jnp.dot(jnp.ones(jnp.shape(w)[0]), w)
     return jnp.sqrt(qdr) / denominator
+
+
+def make_main_plot(
+    result_df, labels, metric="gain", ncols=3, fig_mul=3, cbar_label="Gain", title=None
+):
+
+    df = result_df.copy()
+    # pick the non-NA parameter for every row
+    df["param"] = np.where(df["nugget"].notna(), df["nugget"], df["block_size"])
+
+    df_mean = df.groupby(["precon", "lengthscale", "param"], as_index=False)[
+        metric
+    ].mean()
+
+    df_se = df.groupby(["precon", "lengthscale", "param"], as_index=False)[metric].sem()
+
+    precons = sorted(df_mean["precon"].unique())  # 6 of them
+    n_rows, n_cols = 2, 3  # grid shape
+
+    # 1) Compute values and global vmin/vmax for colorbar
+    all_vals = []
+
+    for pre in precons:
+        heat = (
+            df_mean[df_mean["precon"] == pre]
+            .pivot(index="param", columns="lengthscale", values=metric)
+            .values
+        )
+        all_vals.append(heat)
+
+    all_vals = np.concatenate([h.flatten() for h in all_vals])
+    vmin, vmax = all_vals.min(), all_vals.max()
+    cmax = max(abs(vmin), abs(vmax))
+
+    # 2) Make subplots
+    n = len(precons)
+    cols = ncols
+    rows = int(np.ceil(n / cols))
+    fig, axes = plt.subplots(
+        rows, cols, figsize=(fig_mul * cols, fig_mul * rows), constrained_layout=False
+    )
+
+    for i, pre in enumerate(precons):
+        ax = axes.flat[i]
+        heat = (
+            df_mean[df_mean["precon"] == pre]
+            .pivot(index="param", columns="lengthscale", values=metric)
+            .sort_index()
+        )
+
+        heat_se = (
+            df_se[df_se["precon"] == pre]
+            .pivot(index="param", columns="lengthscale", values=metric)
+            .sort_index()
+        )
+
+        se_data = heat_se.values  # for plotting standard error strings
+        mean_data = heat.values
+
+        display_name = PRECON_REGISTRY[pre]().display_name
+
+        sns.heatmap(  # draw heatmap
+            heat,
+            ax=ax,
+            cmap="coolwarm_r",
+            vmin=-cmax,
+            vmax=+cmax,
+            cbar=False,  # turn off individual colorbars
+            xticklabels=labels["lengthscale_labels"],
+            yticklabels=(
+                labels["block_labels"]
+                if pre == "BlockJacobi"
+                else labels["nugget_labels"]
+            ),
+        )
+
+        thresh = cmax * 2 / 3  # threshold for text color change
+
+        for i in range(se_data.shape[0]):  # draw standard errors
+            for j in range(se_data.shape[1]):
+                mean_val = mean_data[i, j]  # used to decide color
+                se_val = se_data[i, j]
+                color = "black" if mean_val < thresh and mean_val > -thresh else "white"
+                ax.text(
+                    j + 0.5,
+                    i + 0.5,
+                    f"{se_val:.2f}",
+                    ha="center",
+                    va="center",
+                    color=color,
+                )
+
+        ax.set_title(display_name, fontsize=12)
+        ax.set_xlabel(r"$\ln \ell $", fontsize=10)
+        ax.set_ylabel(r"$b$" if pre == "BlockJacobi" else r"$\ln \eta$", fontsize=10)
+        ax.invert_yaxis()
+
+    # hide any empty axes
+    for ax in axes.flat[len(precons) :]:
+        ax.axis("off")
+
+    # adjust so there's space for the colorbar
+    plt.tight_layout()
+
+    # 3) Add one global colorbar
+    # place it on the right [left, bottom, width, height]
+    cbar_ax = fig.add_axes([0.93, 0.2, 0.02, 0.6])
+    norm = plt.Normalize(vmin=-cmax, vmax=+cmax)
+    sm = plt.cm.ScalarMappable(cmap="coolwarm_r", norm=norm)
+    sm.set_array([])  # only needed for the colorbar
+
+    cbar = fig.colorbar(sm, cax=cbar_ax, label=cbar_label)
+    cbar.ax.yaxis.label.set_size(12)  # or whatever size you prefer
+
+    plt.subplots_adjust(right=0.9, top=0.95, bottom=0.1)
+
+    # create title
+    if title is not None:
+        fig.subplots_adjust(top=0.88)
+        fig.suptitle(r"\textbf{" + title + "}", fontsize=14)
+        line = Line2D(
+            [0.06, 0.94],
+            [0.935, 0.935],
+            transform=fig.transFigure,
+            color="black",
+            linewidth=0.3,
+        )
+        fig.add_artist(line)
+
+    return fig, axes
 
 
 class PCG_Experiment:
@@ -215,113 +347,3 @@ class PCG_Experiment:
             return debug_dict
         else:
             return None
-
-
-def plot_heatmap_data(
-    all_heatmap_data, preconditioners=None, grid_shape=(3, 3), figsize=(12, 10)
-):
-    """
-    Plots heatmaps for each preconditioner using averaged data and standard errors.
-
-    Parameters:
-      all_heatmap_data : dict
-          A dictionary containing keys 'data', 'xticklabels', and 'yticklabels'.
-          - all_heatmap_data['data'] should be a dict mapping each preconditioner name
-            to an array-like of shape (num_experiments, ...), where the remaining dimensions
-            form the heatmap.
-          - Similarly, 'xticklabels' and 'yticklabels' should contain labels for each preconditioner.
-      preconditioners : list of str, optional
-          List of preconditioner names to plot. If None, a default list is used.
-      grid_shape : tuple of int, optional
-          The (rows, columns) of the subplot grid.
-      figsize : tuple of int, optional
-          Size of the overall figure.
-
-    Returns:
-      fig : matplotlib.figure.Figure
-          The generated figure.
-      axes : array of Axes
-          The axes array.
-    """
-    # Set a default list of preconditioners if none is provided.
-    if preconditioners is None:
-        preconditioners = [
-            "Block Jacobi",
-            "Nystrom",
-            "Nystrom (diagonal sampling)",
-            "FITC",
-            "Nystrom (random projection)",
-            "Randomized SVD",
-        ]
-
-    # Calculate averaged data and standard errors for each preconditioner.
-    averaged_data = {}
-    standard_errors = {}
-    for pre in preconditioners:
-        # Convert the collected data (assumed to be a list or array of heatmap data)
-        # to a numpy array.
-        all_data = np.array(all_heatmap_data["data"][pre])
-        # Replace NaNs/infs with zeros.
-        all_data = np.nan_to_num(all_data, nan=0.0, posinf=0.0, neginf=0.0)
-        averaged_data[pre] = np.mean(all_data, axis=0)
-        standard_errors[pre] = np.std(all_data, axis=0) / np.sqrt(all_data.shape[0])
-
-    # Determine the global color scale.
-    max_abs_value = max(np.abs(averaged_data[pre]).max() for pre in preconditioners)
-    vmin = -max_abs_value
-    vmax = max_abs_value
-
-    # Create the grid of subplots.
-    fig, axes = plt.subplots(*grid_shape, figsize=figsize)
-    axes = axes.flatten()
-
-    # Loop over preconditioners and plot each heatmap.
-    for i, pre in enumerate(preconditioners):
-        ax = axes[i]
-        # Use Seaborn's heatmap. Annotate with the standard error.
-        sns.heatmap(
-            averaged_data[pre],
-            xticklabels=all_heatmap_data["xticklabels"][pre],
-            yticklabels=all_heatmap_data["yticklabels"][pre],
-            ax=ax,
-            cmap="RdBu",
-            annot=standard_errors[pre],
-            cbar=False,
-            vmin=vmin,
-            vmax=vmax,
-        )
-        # Optionally adjust the name for display.
-        title_str = pre
-        if pre == "Randomized SVD":
-            title_str = "Randomised SVD"
-        ax.set_title(title_str, fontsize=20)
-        ax.invert_yaxis()
-        ax.set_xlabel(r"$\log_{10} \ell$", fontsize=15)
-        if pre == "Block Jacobi":
-            ax.set_ylabel(r"$b$", fontsize=15)
-        elif pre == "Spectral":
-            ax.set_ylabel(r"$r$", fontsize=15)
-        else:
-            ax.set_ylabel(r"$\log_{10} \eta$", fontsize=15)
-
-    # If there are extra axes in the grid (unused subplots), turn them off.
-    for j in range(len(preconditioners), len(axes)):
-        axes[j].axis("off")
-
-    # Add a single colorbar for the entire figure.
-    cbar_ax = fig.add_axes([0.92, 0.35, 0.02, 0.3])  # Adjust as needed for your layout.
-    sm = plt.cm.ScalarMappable(cmap="RdBu", norm=plt.Normalize(vmin=vmin, vmax=vmax))
-    cbar = fig.colorbar(sm, cax=cbar_ax)
-    cbar.ax.text(
-        0.5,
-        1.05,
-        "Gain",
-        ha="center",
-        va="center",
-        fontsize=15,
-        transform=cbar.ax.transAxes,
-    )
-
-    plt.tight_layout(rect=[0, 0, 0.9, 1])
-    plt.show()
-    return fig, axes

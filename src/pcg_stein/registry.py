@@ -2,7 +2,7 @@ from pcg_stein.precon import (
     Nystrom,
     NystromRandom,
     NystromDiagonal,
-    RandomisedSVD,
+    RandomisedEVD,
     FITC,
     BlockJacobi,
 )
@@ -17,7 +17,7 @@ PRECON_REGISTRY = {
         Nystrom,
         NystromRandom,
         NystromDiagonal,
-        RandomisedSVD,
+        RandomisedEVD,
         FITC,
         BlockJacobi,
     ]

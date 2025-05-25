@@ -22,7 +22,7 @@ class Distribution:
 
     def sample(self, key: Array, num_samples: int):
         """
-        Sample `num_samples` from the distribution with a provided JAX key.
+        Sample ``num_samples`` from the distribution with a provided JAX key.
         """
         raise NotImplementedError
 
@@ -49,7 +49,8 @@ class Distribution:
 
 
 class BayesianLogisticRegression(Distribution):
-    """Bayesian logistic regression with Gaussian prior and MH sampler.
+    r"""
+    Bayesian logistic regression with Gaussian prior and MH sampler.
 
     Use :py:meth:`from_synthetic` to build a model instance directly from a
     *true* parameter vector.
@@ -69,38 +70,42 @@ class BayesianLogisticRegression(Distribution):
         sigma_prior: float | Array = 1.0,
     ) -> "BayesianLogisticRegression":
         r"""
-        Generate object with generated synthetic data (X, y) from a known parameter vector.
+        Create object with randomly generated synthetic data ``(X, y)`` from a known parameter vector.
 
         Args:
-            key (Array):
+            key:
                 JAX PRNG key used for random number generation.
-            n_samples (int):
+            n_samples:
                 Number of samples (rows) to generate.
-            true_beta (Array):
-                1D array of shape (d,). If `add_intercept=True`, the first element is treated
+            true_beta:
+                1D array of shape ``(d,)``. If ``add_intercept=True``, the first element is treated
                 as the intercept; the remaining elements correspond to slopes. Otherwise, all
                 elements are treated as slopes.
-            add_intercept (bool, optional):
-                If True, prepends a column of ones to the design matrix X so that its number
-                of columns matches `len(true_beta)`. Defaults to True.
-            X (Array, optional):
+            add_intercept:
+                If True, prepends a column of ones to the design matrix ``X`` so that its number
+                of columns matches ``len(true_beta)``.
+            X:
                 Optional design matrix to reuse. See "Shape rules" below for requirements
-                depending on `add_intercept`.
-            sigma_prior (float or Array, optional):
+                depending on ``add_intercept``.
+            sigma_prior:
                 Standard deviation(s) of the Gaussian prior distribution over the true
                 coefficient vector :math:`\beta \sim \mathcal{N}(0, \sigma_{\text{prior}}^2 I)`.
-                Controls the magnitude of sampled coefficients. Defaults to 1.0.
+                Controls the magnitude of sampled coefficients.
 
         Shape rules:
 
-            -If `add_intercept=True`:
-                - If `X` is `None`, a random matrix of shape `(n, d - 1)` is drawn and a ones column is prepended.
-                - If `X` is provided, it may:
-                    - Have shape `(n, d - 1)` → a ones column is prepended.
-                    - Have shape `(n, d)`     → it is used as-is, with its own intercept.
+            If ``add_intercept=True``:
 
-            -If `add_intercept=False`:
-                - `X` must already have `d` columns (matching `len(true_beta)`).
+            - If ``X`` is ``None``, a random matrix of shape ``(n, d−1)`` is drawn and a ones column is prepended.
+            - If ``X`` is provided, it may have one of two shapes:
+
+            - ``(n, d−1)``: a ones column is prepended.
+            - ``(n, d)``: it is used as-is, with its own intercept.
+
+            If ``add_intercept=False``:
+
+            - ``X`` must already have ``d`` columns (matching ``len(true_beta)``).
+
         """
 
         d = true_beta.shape[0]
@@ -154,7 +159,9 @@ class BayesianLogisticRegression(Distribution):
     ###  Log‑probability functions
     @staticmethod
     def _log_sigmoid(x: Array) -> Array:
-        """Numerically stable `log(sigmoid(x))`."""
+        r"""
+        Numerically stable :math:`\log(\sigmoid(x))`.
+        """
         return -jax.nn.softplus(-x)
 
     @partial(jax.jit, static_argnums=0)
@@ -255,23 +262,23 @@ class BayesianLogisticRegression(Distribution):
         init_beta: Optional[Array] = None,
         unique: bool = True,
     ) -> Array:
-        """Draws `num_samples` posterior samples (after burn‑in & thinning).
+        """Draws ``num_samples`` posterior samples (after burn‑in & thinning).
 
         Args:
-            key : Array
+            key:
                 PRNG key.
-            num_samples : int
+            num_samples:
                 Number of stored samples returned.
-            step_size : float, default 0.1
+            step_size:
                 Std. dev. of random‑walk proposal.
-            burn_in : int, default 1000
+            burn_in:
                 Number of warm‑up iterations (discarded).
-            thinning : int, default 1
-                Keep every `thinning`‑th draw after burn‑in.
-            init_beta : Array | None
-                Initial parameter vector.  If None, starts at 0.
-            unique : bool, default True
-                Compile core MH step with `jax.jit` (worthwhile for long chains).
+            thinning:
+                Keep every ``thinning``‑th draw after burn‑in.
+            init_beta:
+                Initial parameter vector. If not provided, starts at origin.
+            unique:
+                If ``True`` returns only unique samples (i.e. no repeated MCMC states).
         Returns:
             JAX array of MH samples.
         """

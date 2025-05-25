@@ -3,7 +3,7 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="pcg_stein package" href="pcg_stein.html" />
+<link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="API documentation" href="api/modules.html" />
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2024.08.06 -->
         <title>pcg-stein 0.1.0 documentation</title>
@@ -178,7 +178,7 @@
           <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
         </button>
       </div>
-      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
         <div class="visually-hidden">Toggle table of contents sidebar</div>
         <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
       </label>
@@ -198,9 +198,19 @@
   <input type="hidden" name="area" value="default">
 </form>
 <div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
-  <p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="pcg_stein.html">pcg_stein package</a></li>
+  <ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="api/modules.html">API documentation</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of API documentation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="api/pcg_stein.html">pcg_stein package</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of pcg_stein package</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/pcg_stein.distribution.html">pcg_stein.distribution module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/pcg_stein.kernel.html">pcg_stein.kernel module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/pcg_stein.pcg.html">pcg_stein.pcg module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/pcg_stein.precon.html">pcg_stein.precon module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/pcg_stein.registry.html">pcg_stein.registry module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/pcg_stein.util.html">pcg_stein.util module</a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 
 </div>
@@ -235,7 +245,7 @@
               <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
             </button>
           </div>
-          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
             <div class="visually-hidden">Toggle table of contents sidebar</div>
             <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
           </label>
@@ -250,150 +260,28 @@
 </div>
 <p>where <span class="math notranslate nohighlight">\(K\)</span> is a symmetric PSD Gram matrix produced by a Stein kernel.</p>
 <div class="toctree-wrapper compound">
-<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="pcg_stein.html">pcg_stein package</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="pcg_stein.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="pcg_stein.html#module-pcg_stein.distribution">pcg_stein.distribution module</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="pcg_stein.html#pcg_stein.distribution.BayesianLogisticRegression"><code class="docutils literal notranslate"><span class="pre">BayesianLogisticRegression</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="pcg_stein.html#pcg_stein.distribution.BayesianLogisticRegression.__init__"><code class="docutils literal notranslate"><span class="pre">BayesianLogisticRegression.__init__()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="pcg_stein.html#pcg_stein.distribution.BayesianLogisticRegression._log_sigmoid"><code class="docutils literal notranslate"><span class="pre">BayesianLogisticRegression._log_sigmoid()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="pcg_stein.html#pcg_stein.distribution.BayesianLogisticRegression.from_synthetic"><code class="docutils literal notranslate"><span class="pre">BayesianLogisticRegression.from_synthetic()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="pcg_stein.html#pcg_stein.distribution.BayesianLogisticRegression.log_likelihood"><code class="docutils literal notranslate"><span class="pre">BayesianLogisticRegression.log_likelihood()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="pcg_stein.html#pcg_stein.distribution.BayesianLogisticRegression.log_prior"><code class="docutils literal notranslate"><span class="pre">BayesianLogisticRegression.log_prior()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="pcg_stein.html#pcg_stein.distribution.BayesianLogisticRegression.log_prob"><code class="docutils literal notranslate"><span class="pre">BayesianLogisticRegression.log_prob()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="pcg_stein.html#pcg_stein.distribution.BayesianLogisticRegression.sample"><code class="docutils literal notranslate"><span class="pre">BayesianLogisticRegression.sample()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="pcg_stein.html#pcg_stein.distribution.Distribution"><code class="docutils literal notranslate"><span class="pre">Distribution</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="pcg_stein.html#pcg_stein.distribution.Distribution.__init__"><code class="docutils literal notranslate"><span class="pre">Distribution.__init__()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="pcg_stein.html#pcg_stein.distribution.Distribution._mh_step"><code class="docutils literal notranslate"><span class="pre">Distribution._mh_step()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="pcg_stein.html#pcg_stein.distribution.Distribution._propose"><code class="docutils literal notranslate"><span class="pre">Distribution._propose()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="pcg_stein.html#pcg_stein.distribution.Distribution.log_prob"><code class="docutils literal notranslate"><span class="pre">Distribution.log_prob()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="pcg_stein.html#pcg_stein.distribution.Distribution.sample"><code class="docutils literal notranslate"><span class="pre">Distribution.sample()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="pcg_stein.html#pcg_stein.distribution.Distribution.score"><code class="docutils literal notranslate"><span class="pre">Distribution.score()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="pcg_stein.html#pcg_stein.distribution.Distribution.set_mh_step_jit"><code class="docutils literal notranslate"><span class="pre">Distribution.set_mh_step_jit()</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="pcg_stein.html#module-pcg_stein.kernel">pcg_stein.kernel module</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="pcg_stein.html#pcg_stein.kernel.GaussianKernel"><code class="docutils literal notranslate"><span class="pre">GaussianKernel</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="pcg_stein.html#pcg_stein.kernel.GaussianKernel._phi"><code class="docutils literal notranslate"><span class="pre">GaussianKernel._phi()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="pcg_stein.html#pcg_stein.kernel.GaussianKernel._phi_pp"><code class="docutils literal notranslate"><span class="pre">GaussianKernel._phi_pp()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="pcg_stein.html#pcg_stein.kernel.GaussianKernel._psi"><code class="docutils literal notranslate"><span class="pre">GaussianKernel._psi()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="pcg_stein.html#pcg_stein.kernel.GaussianKernel.display_name"><code class="docutils literal notranslate"><span class="pre">GaussianKernel.display_name</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="pcg_stein.html#pcg_stein.kernel.GaussianKernel.name"><code class="docutils literal notranslate"><span class="pre">GaussianKernel.name</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="pcg_stein.html#pcg_stein.kernel.IMQKernel"><code class="docutils literal notranslate"><span class="pre">IMQKernel</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="pcg_stein.html#pcg_stein.kernel.IMQKernel._phi"><code class="docutils literal notranslate"><span class="pre">IMQKernel._phi()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="pcg_stein.html#pcg_stein.kernel.IMQKernel._phi_pp"><code class="docutils literal notranslate"><span class="pre">IMQKernel._phi_pp()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="pcg_stein.html#pcg_stein.kernel.IMQKernel._psi"><code class="docutils literal notranslate"><span class="pre">IMQKernel._psi()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="pcg_stein.html#pcg_stein.kernel.IMQKernel.display_name"><code class="docutils literal notranslate"><span class="pre">IMQKernel.display_name</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="pcg_stein.html#pcg_stein.kernel.IMQKernel.name"><code class="docutils literal notranslate"><span class="pre">IMQKernel.name</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="pcg_stein.html#pcg_stein.kernel.Kernel"><code class="docutils literal notranslate"><span class="pre">Kernel</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="pcg_stein.html#pcg_stein.kernel.Kernel.__call__"><code class="docutils literal notranslate"><span class="pre">Kernel.__call__()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="pcg_stein.html#pcg_stein.kernel.Kernel._pair"><code class="docutils literal notranslate"><span class="pre">Kernel._pair()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="pcg_stein.html#pcg_stein.kernel.Kernel._phi"><code class="docutils literal notranslate"><span class="pre">Kernel._phi()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="pcg_stein.html#pcg_stein.kernel.Kernel._phi_pp"><code class="docutils literal notranslate"><span class="pre">Kernel._phi_pp()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="pcg_stein.html#pcg_stein.kernel.Kernel._psi"><code class="docutils literal notranslate"><span class="pre">Kernel._psi()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="pcg_stein.html#pcg_stein.kernel.Kernel._stein_pair"><code class="docutils literal notranslate"><span class="pre">Kernel._stein_pair()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="pcg_stein.html#pcg_stein.kernel.Kernel.name"><code class="docutils literal notranslate"><span class="pre">Kernel.name</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="pcg_stein.html#pcg_stein.kernel.Kernel.stein_matrix"><code class="docutils literal notranslate"><span class="pre">Kernel.stein_matrix()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="pcg_stein.html#pcg_stein.kernel.Matern52Kernel"><code class="docutils literal notranslate"><span class="pre">Matern52Kernel</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="pcg_stein.html#pcg_stein.kernel.Matern52Kernel._phi"><code class="docutils literal notranslate"><span class="pre">Matern52Kernel._phi()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="pcg_stein.html#pcg_stein.kernel.Matern52Kernel._phi_pp"><code class="docutils literal notranslate"><span class="pre">Matern52Kernel._phi_pp()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="pcg_stein.html#pcg_stein.kernel.Matern52Kernel._psi"><code class="docutils literal notranslate"><span class="pre">Matern52Kernel._psi()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="pcg_stein.html#pcg_stein.kernel.Matern52Kernel.display_name"><code class="docutils literal notranslate"><span class="pre">Matern52Kernel.display_name</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="pcg_stein.html#pcg_stein.kernel.Matern52Kernel.name"><code class="docutils literal notranslate"><span class="pre">Matern52Kernel.name</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="pcg_stein.html#pcg_stein.kernel.Matern72Kernel"><code class="docutils literal notranslate"><span class="pre">Matern72Kernel</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="pcg_stein.html#pcg_stein.kernel.Matern72Kernel._phi"><code class="docutils literal notranslate"><span class="pre">Matern72Kernel._phi()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="pcg_stein.html#pcg_stein.kernel.Matern72Kernel._phi_pp"><code class="docutils literal notranslate"><span class="pre">Matern72Kernel._phi_pp()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="pcg_stein.html#pcg_stein.kernel.Matern72Kernel._psi"><code class="docutils literal notranslate"><span class="pre">Matern72Kernel._psi()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="pcg_stein.html#pcg_stein.kernel.Matern72Kernel.display_name"><code class="docutils literal notranslate"><span class="pre">Matern72Kernel.display_name</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="pcg_stein.html#pcg_stein.kernel.Matern72Kernel.name"><code class="docutils literal notranslate"><span class="pre">Matern72Kernel.name</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="pcg_stein.html#module-pcg_stein.pcg">pcg_stein.pcg module</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="pcg_stein.html#pcg_stein.pcg._pcg_core"><code class="docutils literal notranslate"><span class="pre">_pcg_core()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="pcg_stein.html#pcg_stein.pcg.pcg"><code class="docutils literal notranslate"><span class="pre">pcg()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="pcg_stein.html#module-pcg_stein.precon">pcg_stein.precon module</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="pcg_stein.html#pcg_stein.precon.BlockJacobi"><code class="docutils literal notranslate"><span class="pre">BlockJacobi</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="pcg_stein.html#pcg_stein.precon.BlockJacobi.__call__"><code class="docutils literal notranslate"><span class="pre">BlockJacobi.__call__()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="pcg_stein.html#pcg_stein.precon.BlockJacobi.display_name"><code class="docutils literal notranslate"><span class="pre">BlockJacobi.display_name</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="pcg_stein.html#pcg_stein.precon.BlockJacobi.name"><code class="docutils literal notranslate"><span class="pre">BlockJacobi.name</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="pcg_stein.html#pcg_stein.precon.FITC"><code class="docutils literal notranslate"><span class="pre">FITC</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="pcg_stein.html#pcg_stein.precon.FITC.__call__"><code class="docutils literal notranslate"><span class="pre">FITC.__call__()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="pcg_stein.html#pcg_stein.precon.FITC.display_name"><code class="docutils literal notranslate"><span class="pre">FITC.display_name</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="pcg_stein.html#pcg_stein.precon.FITC.name"><code class="docutils literal notranslate"><span class="pre">FITC.name</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="pcg_stein.html#pcg_stein.precon.Nystrom"><code class="docutils literal notranslate"><span class="pre">Nystrom</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="pcg_stein.html#pcg_stein.precon.Nystrom.__call__"><code class="docutils literal notranslate"><span class="pre">Nystrom.__call__()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="pcg_stein.html#pcg_stein.precon.Nystrom.display_name"><code class="docutils literal notranslate"><span class="pre">Nystrom.display_name</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="pcg_stein.html#pcg_stein.precon.Nystrom.name"><code class="docutils literal notranslate"><span class="pre">Nystrom.name</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="pcg_stein.html#pcg_stein.precon.NystromDiagonal"><code class="docutils literal notranslate"><span class="pre">NystromDiagonal</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="pcg_stein.html#pcg_stein.precon.NystromDiagonal.__call__"><code class="docutils literal notranslate"><span class="pre">NystromDiagonal.__call__()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="pcg_stein.html#pcg_stein.precon.NystromDiagonal.display_name"><code class="docutils literal notranslate"><span class="pre">NystromDiagonal.display_name</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="pcg_stein.html#pcg_stein.precon.NystromDiagonal.name"><code class="docutils literal notranslate"><span class="pre">NystromDiagonal.name</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="pcg_stein.html#pcg_stein.precon.NystromRandom"><code class="docutils literal notranslate"><span class="pre">NystromRandom</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="pcg_stein.html#pcg_stein.precon.NystromRandom.__call__"><code class="docutils literal notranslate"><span class="pre">NystromRandom.__call__()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="pcg_stein.html#pcg_stein.precon.NystromRandom.display_name"><code class="docutils literal notranslate"><span class="pre">NystromRandom.display_name</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="pcg_stein.html#pcg_stein.precon.NystromRandom.name"><code class="docutils literal notranslate"><span class="pre">NystromRandom.name</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="pcg_stein.html#pcg_stein.precon.Preconditioner"><code class="docutils literal notranslate"><span class="pre">Preconditioner</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="pcg_stein.html#pcg_stein.precon.Preconditioner.__call__"><code class="docutils literal notranslate"><span class="pre">Preconditioner.__call__()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="pcg_stein.html#pcg_stein.precon.Preconditioner.display_name"><code class="docutils literal notranslate"><span class="pre">Preconditioner.display_name</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="pcg_stein.html#pcg_stein.precon.Preconditioner.name"><code class="docutils literal notranslate"><span class="pre">Preconditioner.name</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="pcg_stein.html#pcg_stein.precon.Preconditioner.spectral_pinv"><code class="docutils literal notranslate"><span class="pre">Preconditioner.spectral_pinv()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="pcg_stein.html#pcg_stein.precon.Preconditioner.sub_matrix"><code class="docutils literal notranslate"><span class="pre">Preconditioner.sub_matrix()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="pcg_stein.html#pcg_stein.precon.RandomisedSVD"><code class="docutils literal notranslate"><span class="pre">RandomisedSVD</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="pcg_stein.html#pcg_stein.precon.RandomisedSVD.__call__"><code class="docutils literal notranslate"><span class="pre">RandomisedSVD.__call__()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="pcg_stein.html#pcg_stein.precon.RandomisedSVD.display_name"><code class="docutils literal notranslate"><span class="pre">RandomisedSVD.display_name</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="pcg_stein.html#pcg_stein.precon.RandomisedSVD.name"><code class="docutils literal notranslate"><span class="pre">RandomisedSVD.name</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="pcg_stein.html#module-pcg_stein.registry">pcg_stein.registry module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="pcg_stein.html#module-pcg_stein.util">pcg_stein.util module</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="pcg_stein.html#pcg_stein.util.PCG_Experiment"><code class="docutils literal notranslate"><span class="pre">PCG_Experiment</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="pcg_stein.html#pcg_stein.util.PCG_Experiment.__call__"><code class="docutils literal notranslate"><span class="pre">PCG_Experiment.__call__()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="pcg_stein.html#pcg_stein.util.PCG_Experiment.__init__"><code class="docutils literal notranslate"><span class="pre">PCG_Experiment.__init__()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="pcg_stein.html#pcg_stein.util.PCG_Experiment._stein_matrix"><code class="docutils literal notranslate"><span class="pre">PCG_Experiment._stein_matrix()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="pcg_stein.html#pcg_stein.util.PCG_Experiment.check_failure_conditions"><code class="docutils literal notranslate"><span class="pre">PCG_Experiment.check_failure_conditions()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="pcg_stein.html#pcg_stein.util.PCG_Experiment.set_reference_wce"><code class="docutils literal notranslate"><span class="pre">PCG_Experiment.set_reference_wce()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="pcg_stein.html#pcg_stein.util.est_err"><code class="docutils literal notranslate"><span class="pre">est_err()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="pcg_stein.html#pcg_stein.util.plot_heatmap_data"><code class="docutils literal notranslate"><span class="pre">plot_heatmap_data()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="pcg_stein.html#module-pcg_stein">Module contents</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/modules.html">API documentation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api/pcg_stein.html">pcg_stein package</a></li>
 </ul>
 </li>
 </ul>
 </div>
+<section id="references">
+<h2>References<a class="headerlink" href="#references" title="Link to this heading">¶</a></h2>
+<div class="docutils container" id="id1">
+<div role="list" class="citation-list">
+<div class="citation" id="id2" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>HMT11<span class="fn-bracket">]</span></span>
+<p>Nathan Halko, Per-Gunnar Martinsson, and Joel A Tropp. Finding structure with randomness: probabilistic algorithms for constructing approximate matrix decompositions. <em>SIAM Review</em>, 53(2):217–288, 2011.</p>
+</div>
+<div class="citation" id="id3" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>QuinoneroCR05<span class="fn-bracket">]</span></span>
+<p>Joaquin Quiñonero-Candela and Carl E. Rasmussen. A unifying view of sparse approximate Gaussian process regression. <em>Journal of Machine Learning Research</em>, 6:1939–1959, 2005.</p>
+</div>
+</div>
+</div>
+</section>
 </section>
 
         </article>
@@ -401,12 +289,12 @@
       <footer>
         
         <div class="related-pages">
-          <a class="next-page" href="pcg_stein.html">
+          <a class="next-page" href="api/modules.html">
               <div class="page-info">
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">pcg_stein package</div>
+                <div class="title">API documentation</div>
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
@@ -429,8 +317,27 @@
         
       </footer>
     </div>
-    <aside class="toc-drawer no-toc">
+    <aside class="toc-drawer">
       
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">pcg-stein documentation</a><ul>
+<li><a class="reference internal" href="#references">References</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
       
       
     </aside>

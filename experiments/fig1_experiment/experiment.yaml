@@ -5,17 +5,17 @@ replicates: 50
 wce_mul: 1.01
 
 # Number of iterations used in CG to compute reference worst-case error
-n_iter_wce_reference: 5000
+n_iter_wce_reference: 10000
 
 # Maximum number of CG/PCG iterations before termination criterion
-maxiter: 2000
+maxiter: 10000
 
 # kernel hyperparameters log_e(lengthscales)
 ln_lengthscales: [-2, -1, 0, 1, 2]
 
 # preconditioner parameters
-block_sizes:  [1, 2, 3, 4, 5]
-ln_nuggets:      [-3, -2, -1, 0, 1]
+block_sizes:  [1, 5, 10, 15, 20]
+ln_nuggets:   [-2, -1, 0, 1, 2]
 
 # low-rank target
 m_rank: 50
@@ -29,7 +29,7 @@ precons:
   - "Nystrom"
   - "NystromRandom"
   - "NystromDiagonal"
-  - "RandomisedSVD"
+  - "RandomisedEVD"
   - "FITC"
 
 # distribution configuration (must match .name in DISTRIBUTION_REGISTRY)
